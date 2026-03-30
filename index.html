@@ -175,29 +175,8 @@
                         Si vous aimez créer des jeux en Python/Pyxel, participez à la <b>Nuit du Code</b>! La Nuit du Code est un marathon de programmation durant lequel les élèves, par équipes de deux ou trois, ont 6h pour coder un jeu avec Scratch ou Python/Pyxel. Parlez-en à votre enseignant. Les enseignants peuvent inscrire autant d'élèves qu'ils le souhaitent. Pour en savoir plus : <a href="https://www.nuitducode.net" target="_blank">www.nuitducode.net</a>
                     </div>
                 </div>
-                <!-- /ONGLET - ACCUEIL -->                
-
-                <!-- ONGLET - FICHIERS -->
-                <div id="pills-files" class="tab-pane fade" role="tabpanel" aria-labelledby="pills-files-tab"
-                    tabindex="0">
-                    <div class="mt-2 mb-3">
-                        <span class="ms-1"><button class="btn btn-sm btn-light" onclick="addFilePrompt()"
-                                data-bs-toggle="tooltip" data-bs-title="ajouter un fichier"><i class="fa-solid fa-plus"></i></button></span>
-                        <span class="ms-2">
-                            <label for="upload_files" class="btn btn-sm btn-light m-0" data-bs-toggle="tooltip"
-                                data-bs-title="importer un fichier" style="cursor:pointer">
-                                <i class="fa-solid fa-arrow-up-from-bracket"></i>
-                            </label>
-                            <input type="file" id="upload_files" accept=".py,.txt,.pyxres,.pyxapp" multiple
-                                style="display:none;" onchange="handleFileUpload(event)">
-                        </span>
-                    </div>
-                    <ul id="files_list" class="list-group font-monospace small mb-5">
-                        <!-- Rempli dynamiquement -->
-                    </ul>
-                </div>
-                <!-- /ONGLET - FICHIERS -->
-
+                <!-- /ONGLET - ACCUEIL -->    
+                 
                 <!-- ONGLET - DOCUMENTATION -->
                 <div id="pills-documentation" class="tab-pane fade" role="tabpanel"
                     aria-labelledby="pills-documentation-tab" tabindex="0">
@@ -227,6 +206,27 @@
                 </div>
                 <!-- /ONGLET - DOCUMENTATION -->
 
+                <!-- ONGLET - FICHIERS -->
+                <div id="pills-files" class="tab-pane fade" role="tabpanel" aria-labelledby="pills-files-tab"
+                    tabindex="0">
+                    <div class="mt-2 mb-3">
+                        <span class="ms-1"><button class="btn btn-sm btn-light" onclick="addFilePrompt()"
+                                data-bs-toggle="tooltip" data-bs-title="ajouter un fichier"><i class="fa-solid fa-plus"></i></button></span>
+                        <span class="ms-2">
+                            <label for="upload_files" class="btn btn-sm btn-light m-0" data-bs-toggle="tooltip"
+                                data-bs-title="importer un fichier" style="cursor:pointer">
+                                <i class="fa-solid fa-arrow-up-from-bracket"></i>
+                            </label>
+                            <input type="file" id="upload_files" accept=".py,.txt,.pyxres,.pyxapp" multiple
+                                style="display:none;" onchange="handleFileUpload(event)">
+                        </span>
+                    </div>
+                    <ul id="files_list" class="list-group font-monospace small mb-5">
+                        <!-- Rempli dynamiquement -->
+                    </ul>
+                </div>
+                <!-- /ONGLET - FICHIERS -->
+
                 <!-- ONGLET - ÉDITEUR DE CODE -->
                 <div class="tab-pane fade active show" id="pills-code_editor" role="tabpanel"
                     aria-labelledby="pills-code_editor-tab" tabindex="0">
@@ -241,16 +241,18 @@
                 <!-- /ONGLET - ÉDITEUR DE CODE -->
 
                 <!-- ONGLET - ÉDITEUR DE RESSOURCES -->
-                <div id="pills-resources_editor" class="tab-pane fade" role="tabpanel"
-                    aria-labelledby="pills-resources_editor-tab" tabindex="0">
-                    <div class="mb-1 ps-1 font-monospace"><i id="active_pyxres_icon" class="fa-solid fa-palette me-1" style="display:none;"></i><b
-                            id="active_pyxres_display"></b></div>
-                    <div id="no-pyxres-message" class="p-3" style="display:none;">
+                <div id="pills-resources_editor" class="tab-pane fade" role="tabpanel" aria-labelledby="pills-resources_editor-tab" tabindex="0">
+                    <div class="mb-1 ps-1 font-monospace">
+                        <i id="active_pyxres_icon" class="fa-solid fa-palette me-1" style="display:none;"></i><b
+                            id="active_pyxres_display"></b>
+                    </div>
+                    <div id="no-pyxres-message" class="p-3 font-monospace small" style="display:none;">
                         <p class="mb-2"><i class="fa-solid fa-circle-info me-1 text-primary"></i>Aucun fichier <code>.pyxres</code> n'est disponible.</p>
                         <p class="mb-1">Pour utiliser l'éditeur de ressources, vous pouvez :</p>
                         <ul>
-                            <li>Importer un fichier <code>.pyxres</code> existant via le bouton <i class="fa-solid fa-arrow-up-from-bracket"></i> de l'onglet Fichiers</li>
                             <li>Créer un fichier <code>.pyxres</code> vide via le bouton <i class="fa-solid fa-plus"></i> de l'onglet Fichiers</li>
+                            <li>Importer un fichier <code>.pyxres</code> existant via le bouton <i class="fa-solid fa-arrow-up-from-bracket"></i> de l'onglet Fichiers</li>
+                            
                         </ul>
                     </div>
                     <div id="pyxel-editor" style="flex-grow:1;min-height:0;"></div>
@@ -609,7 +611,7 @@
                 }
 
                 const nameSpan = document.createElement('span');
-                nameSpan.className = 'ms-1 font-monospace' + (filename === active_py || filename === active_pyxres ? ' fw-bold text-primary' : '');
+                nameSpan.className = 'ms-2 font-monospace' + (filename === active_py || filename === active_pyxres ? ' fw-bold text-primary' : '');
                 nameSpan.textContent = filename;
 
                 leftSpan.appendChild(actionBtn);
