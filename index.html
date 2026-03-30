@@ -1,0 +1,931 @@
+<!--
+    Pyxel Studio pour Capytale
+    Version : 2.0.0
+    Auteur : Laurent Abbal (https://laurentabbal.forge.apps.education.fr/)
+    Licence : AGPL v3 (https://www.gnu.org/licenses/agpl-3.0.txt)
+-->
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Pyxel Studio pour Capytale</title>
+
+    <!-- Favicon -->
+    <link rel="shortcut icon" href="assets/img/favicon.png">
+
+    <!-- Font Awesome -->
+    <link href="assets/fontawesome/css/all.css" rel="stylesheet">
+
+    <!-- Feuilles de style -->
+    <link href="assets/css/bootstrap.css" rel="stylesheet">
+    <link href="assets/css/custom.css" rel="stylesheet">
+    <link href="assets/wasm/pyxel.css" rel="stylesheet">
+
+    <style>
+        html,
+        body {
+            height: 100%;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 15px 1fr;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .gutter-col {
+            grid-row: 1/-1;
+            cursor: col-resize;
+            background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAeCAYAAADkftS9AAAAIklEQVQoU2M4c+bMfxAGAgYYmwGrIIiDjrELjpo5aiZeMwF+yNnOs5KSvgAAAABJRU5ErkJggg==');
+            background-color: rgb(229, 231, 235);
+            background-repeat: no-repeat;
+            background-position: 50%;
+        }
+
+        .gutter-col-1 {
+            grid-column: 2;
+        }
+
+        /* Correction pour le contenu des onglets et le défilement */
+        .tab-content {
+            flex-grow: 1;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .tab-pane {
+            flex-grow: 1;
+            overflow-y: auto;
+            min-height: 0;
+        }
+
+        .tab-pane.active {
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Pas de scroll pour les éditeurs, ils ont leur propre scroll interne */
+        #pills-code_editor,
+        #pills-resources_editor {
+            overflow: hidden;
+        }
+        #aboutModal .btn:hover,
+        #aboutModal .btn:focus,
+        #aboutModal .btn:active {
+            background: none !important;
+            color: inherit !important;
+            box-shadow: none !important;
+            transform: none !important;
+            border: none !important;
+            outline: none !important;
+            padding: 0 !important;
+            margin: 0 !important;
+        }
+        #aboutModal .btn {
+            border: none !important;
+        }
+    </style>
+
+
+    <meta http-equiv="cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="cache-control" content="max-age=0" />
+    <meta http-equiv="cache-control" content="no-store" />
+    <meta http-equiv="expires" content="-1" />
+    <meta http-equiv="expires" content="Tue, 01 Jan 1980 1:00:00 GMT" />
+    <meta http-equiv="pragma" content="no-cache" />
+
+</head>
+
+<body>
+
+    <div class="grid w-100 h-100">
+
+        <div style="overflow:hidden;display:flex;flex-direction:column;height:100%;padding:10px;">
+
+            <div class="row mt-1">
+                <div class="col">
+                    <!-- ONGLETS -->
+                    <ul id="pills-tab" class="nav nav-pills mb-3" role="tablist">
+                        <img src="assets/img/pyxelstudio-logo.png" class="me-3" width="50" height="33"
+                            alt="Nuit du Code" style="cursor:pointer;" data-bs-toggle="modal" data-bs-target="#aboutModal" />
+                        <li class="nav-item me-3 mb-1" role="presentation">
+                            <button id="pills-home-tab" class="btn btn-light btn-sm" style="width:40px"
+                                data-bs-toggle="pill" data-bs-target="#pills-home" type="button" role="tab"
+                                aria-controls="pills-home" aria-selected="false"><i
+                                    class="fa-solid fa-house"></i></button>
+                        </li>
+                        <li class="nav-item me-3 mb-1" role="presentation">
+                            <button id="pills-documentation-tab" class="btn btn-light btn-sm" style="width:40px"
+                                data-bs-toggle="pill" data-bs-target="#pills-documentation" type="button" role="tab"
+                                aria-controls="pills-documentation" aria-selected="false"><i
+                                    class="fa-solid fa-book"></i></button>
+                        </li>
+                        <li class="nav-item me-1 mb-1" role="presentation">
+                            <button id="pills-files-tab" class="btn btn-primary btn-sm" style="width:40px"
+                                data-bs-toggle="pill" data-bs-target="#pills-files" type="button" role="tab"
+                                aria-controls="pills-files" aria-selected="false"><i
+                                    class="fa-solid fa-list-ul"></i></button>
+                        </li>
+                        <li class="nav-item me-1 mb-1" role="presentation">
+                            <button id="pills-code_editor-tab" class="btn btn-primary btn-sm active" style="width:40px"
+                                data-bs-toggle="pill" data-bs-target="#pills-code_editor" type="button" role="tab"
+                                aria-controls="pills-code_editor" aria-selected="true"><i
+                                    class="fa-solid fa-code"></i></button>
+                        </li>
+                        <li class="nav-item me-1 mb-1" role="presentation">
+                            <button id="pills-resources_editor-tab" class="btn btn-primary btn-sm" style="width:40px"
+                                data-bs-toggle="pill" data-bs-target="#pills-resources_editor" type="button" role="tab"
+                                aria-controls="pills-resources_editor" aria-selected="false"><i
+                                    class="fa-solid fa-paintbrush"></i></button>
+                        </li>
+                        <li class="nav-item ms-3 mb-1" role="presentation">
+                            <button id="btn-run-code" class="btn btn-warning btn-sm" style="width:40px" type="button"><i
+                                    class="fas fa-play"></i></button>
+                        </li>
+                    </ul>
+                    <!-- /ONGLETS -->
+
+                </div>
+            </div>
+
+            <div class="tab-content flex-grow-1" id="pills-tabContent">
+
+                <!-- ONGLET - ACCUEIL -->
+                <div id="pills-home" class="tab-pane fade font-monospace p-2" role="tabpanel"
+                    aria-labelledby="pills-home-tab" tabindex="0">
+                    <div class="mt-4 mb-3 text-center">
+                        <img src="assets/img/pyxel-logo.png" width="76" />
+                    </div>
+                    <div>
+                        <b>Pyxel</b> (/'pɪksəl/) est un moteur de jeu rétro pour Python. Avec des spécifications simples inspirées des consoles de jeux rétro, comme l'affichage limité à 16 couleurs et la prise en charge de 4 canaux audio, vous pouvez facilement créer des jeux au style pixel art. Pour en savoir plus : <a href="https://kitao.github.io/pyxel/web/user-guide/" target="_blank" >site officiel</a>
+                    </div>
+                    <div class="mt-3 text-center">
+                        <img src="assets/img/1.gif" height="140" class="mb-1" style="border-radius:3px;" />
+                        <img src="assets/img/2.gif" height="140" class="mb-1" style="border-radius:3px;" />
+                        <img src="assets/img/3.gif" height="140" class="mb-1" style="border-radius:3px;" />
+                    </div>
+                    <div class="mt-5 mb-3 text-center">
+                        <img src="assets/img/ndc.png" width="62" />
+                    </div>
+                    <div>
+                        Si vous aimez créer des jeux en Python/Pyxel, participez à la <b>Nuit du Code</b>! La Nuit du Code est un marathon de programmation durant lequel les élèves, par équipes de deux ou trois, ont 6h pour coder un jeu avec Scratch ou Python/Pyxel. Parlez-en à votre enseignant. Les enseignants peuvent inscrire autant d'élèves qu'ils le souhaitent. Pour en savoir plus : <a href="https://www.nuitducode.net" target="_blank">www.nuitducode.net</a>
+                    </div>
+                </div>
+                <!-- /ONGLET - ACCUEIL -->                
+
+                <!-- ONGLET - FICHIERS -->
+                <div id="pills-files" class="tab-pane fade" role="tabpanel" aria-labelledby="pills-files-tab"
+                    tabindex="0">
+                    <div class="mt-2 mb-3">
+                        <span class="ms-1"><button class="btn btn-sm btn-light" onclick="addFilePrompt()"
+                                data-bs-toggle="tooltip" data-bs-title="ajouter un fichier"><i class="fa-solid fa-plus"></i></button></span>
+                        <span class="ms-2">
+                            <label for="upload_files" class="btn btn-sm btn-light m-0" data-bs-toggle="tooltip"
+                                data-bs-title="importer un fichier" style="cursor:pointer">
+                                <i class="fa-solid fa-arrow-up-from-bracket"></i>
+                            </label>
+                            <input type="file" id="upload_files" accept=".py,.txt,.pyxres,.pyxapp" multiple
+                                style="display:none;" onchange="handleFileUpload(event)">
+                        </span>
+                    </div>
+                    <ul id="files_list" class="list-group font-monospace small mb-5">
+                        <!-- Rempli dynamiquement -->
+                    </ul>
+                </div>
+                <!-- /ONGLET - FICHIERS -->
+
+                <!-- ONGLET - DOCUMENTATION -->
+                <div id="pills-documentation" class="tab-pane fade" role="tabpanel"
+                    aria-labelledby="pills-documentation-tab" tabindex="0">
+                    <div class="mt-2 mb-5">
+                        <b>DOCUMENTATION PYXEL</b>
+                        <ul class="mt-2">
+                            <li>Version : <span class="font-monospace text-success fw-bold">2.8.7</span></li>
+                            <li>Documentation officielle : <a href="https://kitao.github.io/pyxel/web/user-guide/"
+                                    class="btn btn-light btn-sm mb-1" role="button" target="_blank"><i
+                                        class="fa-solid fa-book"></i></a></li>
+                        </ul>
+                        <div class="text-center font-monospace mx-2">
+                            <div><img src="assets/img/pyxel-palette.png" class="img-fluid rounded w-100" /></div>
+                            <div style="font-size:70%;color:silver;">source : <a
+                                    href="https://github.com/kitao/pyxel">github.com/kitao/pyxel</a></div>
+                            <div><img src="assets/img/pyxel-screen-tilemap.png" class="mt-3 img-fluid rounded w-100" /></div>
+                            <div style="font-size:70%;color:silver;">source : <a
+                                    href="https://github.com/kitao/pyxel">github.com/kitao/pyxel</a></div>
+                        </div>
+                        <div class="text-center mt-5">
+                            <button id="btn-doc-api" class="btn btn-primary btn-sm me-2" onclick="showDoc('api')">Référence API</button>
+                            <button id="btn-doc-editor" class="btn btn-light btn-sm" onclick="showDoc('editor')">Éditeur Pyxel</button>
+                        </div>
+                        <iframe id="iframe-doc-api" src="https://kitao.github.io/pyxel/web/api-reference/" scrolling="no" class="mx-2" style="width:calc(100% - 1rem);height:15000px;border:none;margin-top:16px;display:block;border-radius:8px;overflow:hidden;"></iframe>
+                        <iframe id="iframe-doc-editor" data-src="https://kitao.github.io/pyxel/web/editor-manual/" scrolling="no" class="mx-2" style="width:calc(100% - 1rem);height:15000px;border:none;margin-top:16px;display:none;border-radius:8px;overflow:hidden;"></iframe>
+                    </div>
+                </div>
+                <!-- /ONGLET - DOCUMENTATION -->
+
+                <!-- ONGLET - ÉDITEUR DE CODE -->
+                <div class="tab-pane fade active show" id="pills-code_editor" role="tabpanel"
+                    aria-labelledby="pills-code_editor-tab" tabindex="0">
+                    <div class="mb-1 ps-1 font-monospace"><i class="fa-solid fa-file-code me-1"></i><b
+                            id="active_py_display">app.py</b></div>
+                    <div style="direction:ltr;position:relative;flex-grow:1;min-height:0;">
+                        <div class="w-100 h-100">
+                            <div id="code_editor" style="border-radius:5px;height:100%;"></div>
+                        </div>
+                    </div>
+                </div>
+                <!-- /ONGLET - ÉDITEUR DE CODE -->
+
+                <!-- ONGLET - ÉDITEUR DE RESSOURCES -->
+                <div id="pills-resources_editor" class="tab-pane fade" role="tabpanel"
+                    aria-labelledby="pills-resources_editor-tab" tabindex="0">
+                    <div class="mb-1 ps-1 font-monospace"><i id="active_pyxres_icon" class="fa-solid fa-palette me-1" style="display:none;"></i><b
+                            id="active_pyxres_display"></b></div>
+                    <div id="no-pyxres-message" class="p-3" style="display:none;">
+                        <p class="mb-2"><i class="fa-solid fa-circle-info me-1 text-primary"></i>Aucun fichier <code>.pyxres</code> n'est disponible.</p>
+                        <p class="mb-1">Pour utiliser l'éditeur de ressources, vous pouvez :</p>
+                        <ul>
+                            <li>Importer un fichier <code>.pyxres</code> existant via le bouton <i class="fa-solid fa-arrow-up-from-bracket"></i> de l'onglet Fichiers</li>
+                            <li>Créer un fichier <code>.pyxres</code> vide via le bouton <i class="fa-solid fa-plus"></i> de l'onglet Fichiers</li>
+                        </ul>
+                    </div>
+                    <div id="pyxel-editor" style="flex-grow:1;min-height:0;"></div>
+                </div>
+                <!-- /ONGLET - ÉDITEUR DE RESSOURCES -->
+
+            </div>
+
+        </div>
+
+        <!-- séparateur -->
+        <div class="gutter-col gutter-col-1"></div>
+
+        <!-- PANNEAU DROIT -->
+        <div style="overflow-y:hidden;padding:0px;margin:0px;height:100%;background-color:#111;">
+            <div id="pyxel-screen" class="text-center"
+                style="height:100%;position:relative;padding:0px;margin:0px;color:white;">
+                <div class="font-monospace mt-5 pt-5">cliquez sur <button type="button" id="btn-run-code-center"
+                        class="btn btn-warning btn-sm ps-3 pe-3"><i class="fas fa-play"></i></button> pour exécuter le code
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="assets/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Capytale app-agent chargé dynamiquement via import() dans initRPC -->
+    <script src="assets/js/ace/ace.js" type="text/javascript" charset="utf-8"></script>
+
+    <script>
+        // Références globales
+        var code_editor;
+        var active_py = "app.py";
+        var active_pyxres = "";
+        var _capytaleContentChanged = null; // défini par initRPC une fois le socket connecté
+
+        function notifyCapytaleChange() {
+            if (_capytaleContentChanged) _capytaleContentChanged();
+        }
+
+        // Fonction utilitaire : créer une iframe de manière sûre (pas de innerHTML)
+        function createIframe(src) {
+            var iframe = document.createElement('iframe');
+            iframe.src = src;
+            iframe.width = '100%';
+            iframe.frameBorder = '0';
+            iframe.scrolling = 'no';
+            iframe.style.height = '100%';
+            return iframe;
+        }
+
+        // Fonction utilitaire : lire les données localStorage avec gestion d'erreur
+        function getStorageData() {
+            try {
+                var data = localStorage.getItem('capytale_pyxelstudio_data');
+                if (!data) return {};
+                var parsed = JSON.parse(data);
+                return (parsed && typeof parsed === 'object') ? parsed : {};
+            } catch (e) {
+                console.error('Données localStorage corrompues, réinitialisation.', e);
+                return {};
+            }
+        }
+
+        function safeSetStorageData(json) {
+            try {
+                localStorage.setItem('capytale_pyxelstudio_data', JSON.stringify(json));
+            } catch (e) {
+                console.error('Erreur localStorage (quota dépassé ?) :', e);
+                alert("Impossible de sauvegarder : l'espace de stockage local est plein. Supprimez des fichiers pour libérer de l'espace.");
+            }
+        }
+
+        function initApp() {
+            // --- Tooltips et Popovers ---
+            const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
+            const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
+            const popoverTriggerList = document.querySelectorAll('[data-bs-toggle="popover"]')
+            const popoverList = [...popoverTriggerList].map(popoverTriggerEl => new bootstrap.Popover(popoverTriggerEl))
+
+            // --- Éditeur Ace ---
+            code_editor = ace.edit("code_editor", {
+                theme: "ace/theme/puzzle_code",
+                mode: "ace/mode/python",
+                minLines: 10,
+                fontSize: 14,
+                wrap: true,
+                useWorker: false,
+                readOnly: false,
+                autoScrollEditorIntoView: true,
+                highlightActiveLine: false,
+                highlightSelectedWord: false,
+                highlightGutterLine: true,
+                showPrintMargin: false,
+                displayIndentGuides: true,
+                showLineNumbers: true,
+                showGutter: true,
+                showFoldWidgets: false,
+                useSoftTabs: true,
+                navigateWithinSoftTabs: false,
+                tabSize: 4
+            });
+            code_editor.container.style.lineHeight = 1.5;
+            code_editor.getSession().on('change', function () {
+                notifyCapytaleChange();
+            });
+
+
+            document.getElementById('active_py_display').innerText = active_py;
+
+            // --- RPC Capytale ---
+            initRPC();
+
+            // --- Chargement initial depuis le localStorage (mode autonome uniquement) ---
+            // En mode Capytale (iframe), on attend loadContent pour éviter d'afficher
+            // les données d'une activité précédente encore présentes dans le localStorage.
+            if (window.parent === window) {
+                const savedData = localStorage.getItem('capytale_pyxelstudio_data');
+                if (savedData) {
+                    const json = JSON.parse(savedData);
+                    code_editor.getSession().setValue(json[active_py] || json["app.py"] || "", -1);
+                }
+                renderFilesList();
+                preloadResourceEditor();
+            }
+        }
+    </script>
+
+    <script>
+        // ==================================================================
+        // INITIALISATION & RPC (Capytale app-agent / simple-content(json):1)
+        // ==================================================================
+        async function initRPC() {
+            var pyxel_py = "import pyxel\n\n";
+            var defaultData = { "app.py": pyxel_py };
+
+            if (!localStorage.getItem('capytale_pyxelstudio_data')) {
+                safeSetStorageData(defaultData);
+            }
+
+            // Ignorer le RPC en mode autonome (pas dans une iframe)
+            if (window.parent === window) {
+                console.log("Pyxel Studio : mode autonome (aucune iframe Capytale détectée).");
+                return;
+            }
+
+            try {
+                const { getSocket } = await import("https://cdn.jsdelivr.net/npm/@capytale/app-agent/+esm");
+                const socket = getSocket();
+
+                // Implémentation du contrat simple-content(json)
+                socket.plug('simple-content(json):1', () => ({
+                    loadContent(content) {
+                        // Réinitialiser les fichiers actifs pour éviter toute contamination
+                        // avec une activité précédente
+                        active_py = "app.py";
+                        active_pyxres = "";
+                        if (!content || Object.keys(content).length === 0) {
+                            safeSetStorageData(defaultData);
+                            code_editor.getSession().setValue(defaultData["app.py"], -1);
+                        } else {
+                            if (!content["app.py"]) content["app.py"] = pyxel_py;
+                            safeSetStorageData(content);
+                            code_editor.getSession().setValue(content[active_py] || content["app.py"], -1);
+                        }
+                        document.getElementById('active_py_display').innerText = active_py;
+                        renderFilesList();
+                        preloadResourceEditor();
+                    },
+                    getContent() {
+                        var json = getStorageData();
+                        json[active_py] = code_editor.getSession().getValue();
+                        return json;
+                    },
+                    contentSaved() {
+                        console.log("Pyxel Studio : contenu sauvegardé par Capytale.");
+                    }
+                }));
+
+                // Accès au côté MetaPlayer pour appeler contentChanged()
+                socket.use('simple-content(json)', (sc) => {
+                    _capytaleContentChanged = () => sc.i.contentChanged();
+
+                    // Notifier lors de changements localStorage inter-onglets
+                    window.addEventListener('storage', function () {
+                        sc.i.contentChanged();
+                    });
+                });
+
+                socket.plugsDone();
+                console.log("Pyxel Studio : RPC Capytale initialisé (simple-content(json):1).");
+            } catch (e) {
+                console.error("Pyxel Studio : échec de l'initialisation du RPC Capytale.", e);
+            }
+        }
+    </script>
+
+    <script>
+        function uint8ToBase64(u8) {
+            let bin = "";
+            for (let i = 0; i < u8.length; i++) {
+                bin += String.fromCharCode(u8[i]);
+            }
+            return btoa(bin);
+        }
+
+        async function forceSavePyxelResource() {
+            try {
+                const resourceIframe = document.querySelector('#pyxel-editor iframe');
+                if (!resourceIframe) return;
+
+                // Vérification sécurisée de l'accès cross-origin
+                let context;
+                try {
+                    context = resourceIframe.contentWindow.pyxelContext;
+                } catch (e) {
+                    // Accès cross-origin bloqué
+                    return;
+                }
+
+                if (!context || !context.pyodide) {
+                    return;
+                }
+
+                // --- DÉCLENCHEMENT DE LA SAUVEGARDE (F13) ---
+                const doc = resourceIframe.contentWindow.document;
+                doc.dispatchEvent(new KeyboardEvent("keydown", { key: "F13", code: "F13", bubbles: true }));
+                doc.dispatchEvent(new KeyboardEvent("keyup", { key: "F13", code: "F13", bubbles: true }));
+
+                await new Promise(resolve => setTimeout(resolve, 150));
+
+                const resData = uint8ToBase64(context.pyodide.FS.readFile(`/pyxel_working_directory/${active_pyxres}`));
+                const json = getStorageData() || {};
+                json[active_pyxres] = resData;
+                safeSetStorageData(json);
+                console.log(`Silent auto-save (F13 + VFS) synchronized for ${active_pyxres}.`);
+            } catch (e) {
+                console.error(`Failed to force save ${active_pyxres}:`, e);
+            }
+        }
+
+        async function updateActivePythonFileContent() {
+            const json = getStorageData();
+            json[active_py] = code_editor.getSession().getValue();
+            safeSetStorageData(json);
+        }
+
+        async function run_pyxel() {
+            await forceSavePyxelResource().catch(e => console.warn("Background save failed:", e));
+            await updateActivePythonFileContent();
+
+            var screen = document.getElementById('pyxel-screen');
+            screen.innerHTML = '';
+            screen.appendChild(createIframe('iframe-screen.html?run=' + encodeURIComponent(active_py)));
+        }
+        document.getElementById('btn-run-code').addEventListener("click", run_pyxel);
+        if (document.getElementById('btn-run-code-center')) {
+            document.getElementById('btn-run-code-center').addEventListener("click", run_pyxel);
+        }
+
+        // Précharger l'iframe de l'éditeur de ressources si un .pyxres existe
+        function preloadResourceEditor() {
+            const json = getStorageData();
+            const pyxresFiles = Object.keys(json).filter(f => f.endsWith('.pyxres'));
+            if (pyxresFiles.length === 0) return;
+            if (!json[active_pyxres]) active_pyxres = pyxresFiles[0];
+            const container = document.getElementById('pyxel-editor');
+            container.innerHTML = '';
+            container.appendChild(createIframe('iframe-pyxres.html?edit=' + encodeURIComponent(active_pyxres)));
+        }
+
+        function open_resources_tab() {
+            const json = getStorageData();
+            const pyxresFiles = Object.keys(json).filter(f => f.endsWith('.pyxres'));
+            const noMsg = document.getElementById('no-pyxres-message');
+            const editorDiv = document.getElementById('pyxel-editor');
+
+            const icon = document.getElementById('active_pyxres_icon');
+
+            if (pyxresFiles.length === 0) {
+                noMsg.style.display = '';
+                editorDiv.style.display = 'none';
+                document.getElementById('active_pyxres_display').innerText = '';
+                if (icon) icon.style.display = 'none';
+                return;
+            }
+
+            noMsg.style.display = 'none';
+            editorDiv.style.display = '';
+            if (icon) icon.style.display = '';
+
+            // Si le fichier actif n'existe plus, basculer sur le premier disponible
+            if (!json[active_pyxres]) active_pyxres = pyxresFiles[0];
+            document.getElementById('active_pyxres_display').innerText = active_pyxres;
+
+            const iframeSrc = 'iframe-pyxres.html?edit=' + encodeURIComponent(active_pyxres);
+            const iframe = editorDiv.querySelector('iframe');
+            if (!iframe || iframe.src.indexOf(iframeSrc) === -1) {
+                editorDiv.innerHTML = '';
+                editorDiv.appendChild(createIframe(iframeSrc));
+            }
+        }
+        document.getElementById('pills-resources_editor-tab').addEventListener("click", open_resources_tab);
+        document.getElementById('pills-code_editor-tab').addEventListener("click", () => {
+            forceSavePyxelResource().catch(e => console.warn("Background save failed:", e));
+        });
+
+        // ====================
+        // GESTION DES FICHIERS
+        // ====================
+        function renderFilesList() {
+            const listContainer = document.getElementById('files_list');
+            if (!listContainer) return;
+
+            // Supprimer les tooltips existants pour éviter les tooltips fantômes
+            const oldTooltips = listContainer.querySelectorAll('[data-bs-toggle="tooltip"]');
+            oldTooltips.forEach(el => {
+                const tooltip = bootstrap.Tooltip.getInstance(el);
+                if (tooltip) tooltip.dispose();
+            });
+
+            listContainer.innerHTML = '';
+            const json = getStorageData() || {};
+
+            Object.keys(json).sort().forEach(filename => {
+                const li = document.createElement('li');
+                li.className = "list-group-item d-flex justify-content-between align-items-center p-1 pe-3";
+
+                let ext = filename.split('.').pop();
+
+                // Partie gauche : bouton action + nom du fichier
+                const leftSpan = document.createElement('span');
+                leftSpan.className = 'small';
+
+                const actionBtn = document.createElement('button');
+                actionBtn.className = 'btn btn-light btn-sm';
+                actionBtn.style.width = '35px';
+                actionBtn.setAttribute('data-bs-toggle', 'tooltip');
+
+                if (ext === 'py') {
+                    actionBtn.setAttribute('data-bs-title', 'éditer');
+                    actionBtn.innerHTML = '<i class="fa-solid fa-code"></i>';
+                    actionBtn.addEventListener('click', function() { editPythonFile(filename); });
+                } else if (ext === 'pyxres') {
+                    actionBtn.setAttribute('data-bs-title', 'éditer');
+                    actionBtn.innerHTML = '<i class="fa-solid fa-paintbrush"></i>';
+                    actionBtn.addEventListener('click', function() { editPyxresFile(filename); });
+                } else if (ext === 'pyxapp') {
+                    actionBtn.setAttribute('data-bs-title', 'jouer');
+                    actionBtn.innerHTML = '<i class="fas fa-play"></i>';
+                    actionBtn.addEventListener('click', function() { playPyxappFile(filename); });
+                } else {
+                    actionBtn.disabled = true;
+                    actionBtn.innerHTML = '<i class="fa-solid fa-bars-staggered"></i>';
+                }
+
+                const nameSpan = document.createElement('span');
+                nameSpan.className = 'ms-1 font-monospace' + (filename === active_py || filename === active_pyxres ? ' fw-bold text-primary' : '');
+                nameSpan.textContent = filename;
+
+                leftSpan.appendChild(actionBtn);
+                leftSpan.appendChild(nameSpan);
+
+                // Partie droite : renommer, supprimer, télécharger
+                const rightSpan = document.createElement('span');
+
+                if (filename !== 'app.py') {
+                    const renameLink = document.createElement('a');
+                    renameLink.tabIndex = 0;
+                    renameLink.style.cursor = 'pointer';
+                    renameLink.className = 'text-primary ms-2';
+                    renameLink.setAttribute('data-bs-toggle', 'tooltip');
+                    renameLink.setAttribute('data-bs-title', 'renommer');
+                    renameLink.innerHTML = '<i class="fa-solid fa-pen" style="font-size:90%"></i>';
+                    renameLink.addEventListener('click', function() { renameFile(filename); });
+                    rightSpan.appendChild(renameLink);
+
+                    const deleteLink = document.createElement('a');
+                    deleteLink.tabIndex = 0;
+                    deleteLink.style.cursor = 'pointer';
+                    deleteLink.className = 'text-danger ms-3';
+                    deleteLink.setAttribute('data-bs-toggle', 'tooltip');
+                    deleteLink.setAttribute('data-bs-title', 'supprimer');
+                    deleteLink.innerHTML = '<i class="fa-solid fa-trash" style="font-size:90%"></i>';
+                    deleteLink.addEventListener('click', function() { deleteFile(filename); });
+                    rightSpan.appendChild(deleteLink);
+                }
+
+                const downloadLink = document.createElement('a');
+                downloadLink.style.cursor = 'pointer';
+                downloadLink.className = 'text-dark ms-3';
+                downloadLink.setAttribute('data-bs-toggle', 'tooltip');
+                downloadLink.setAttribute('data-bs-title', 'télécharger');
+                downloadLink.innerHTML = '<i class="fa-solid fa-circle-down"></i>';
+                downloadLink.addEventListener('click', function() { downloadFile(filename); });
+                rightSpan.appendChild(downloadLink);
+
+                li.appendChild(leftSpan);
+                li.appendChild(rightSpan);
+                listContainer.appendChild(li);
+            });
+
+            // Réinitialiser les tooltips
+            const tooltipTriggerList = document.querySelectorAll('#files_list [data-bs-toggle="tooltip"]');
+            [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
+        }
+
+        async function editPythonFile(filename) {
+            if (active_py === filename) {
+                bootstrap.Tab.getOrCreateInstance(document.querySelector('#pills-code_editor-tab')).show();
+                return;
+            }
+            await updateActivePythonFileContent();
+            active_py = filename;
+            const json = getStorageData();
+            code_editor.getSession().setValue(json[filename] || "", -1);
+            document.getElementById('active_py_display').innerText = active_py;
+            renderFilesList();
+
+            // Basculer vers l'onglet code
+            var tab = bootstrap.Tab.getOrCreateInstance(document.querySelector('#pills-code_editor-tab'));
+            tab.show();
+        }
+
+        async function editPyxresFile(filename) {
+            const iframeSrc = 'iframe-pyxres.html?edit=' + encodeURIComponent(filename);
+            const container = document.getElementById('pyxel-editor');
+            const iframe = container.querySelector('iframe');
+
+            if (active_pyxres !== filename || !iframe || iframe.src.indexOf(iframeSrc) === -1) {
+                await forceSavePyxelResource().catch(e => console.warn("Background save failed:", e));
+                active_pyxres = filename;
+                document.getElementById('active_pyxres_display').innerText = active_pyxres;
+                renderFilesList();
+
+                // Réinjecter l'iframe seulement si nécessaire pour charger un fichier différent
+                container.innerHTML = '';
+                container.appendChild(createIframe(iframeSrc));
+            }
+
+            // Basculer vers l'onglet ressources
+            var tab = bootstrap.Tab.getOrCreateInstance(document.querySelector('#pills-resources_editor-tab'));
+            tab.show();
+        }
+
+        async function playPyxappFile(filename) {
+            await forceSavePyxelResource();
+            await updateActivePythonFileContent();
+
+            var screen = document.getElementById('pyxel-screen');
+            screen.innerHTML = '';
+            screen.appendChild(createIframe('iframe-screen.html?run=' + encodeURIComponent(filename)));
+        }
+
+        function addFilePrompt() {
+            const filename = prompt("Nom du nouveau fichier (ex : script.py ou assets.pyxres) :");
+            if (!filename) return;
+
+            let ext = filename.split('.').pop();
+            if (ext !== 'py' && ext !== 'pyxres' && ext !== 'txt') {
+                alert("Seuls les fichiers .py, .pyxres ou .txt peuvent être créés.");
+                return;
+            }
+
+            const json = getStorageData();
+            if (json[filename] !== undefined) {
+                alert("Ce fichier existe déjà.");
+                return;
+            }
+
+            if (ext === 'py') {
+                json[filename] = "import pyxel\n\n";
+            } else if (ext === 'txt') {
+                json[filename] = "";
+            } else if (ext === 'pyxres') {
+                // Fichier ressource Pyxel minimal valide en base64 (archive zip contenant un .pyxres vide)
+                json[filename] = "UEsDBBQAAAAIAAAAIQA1hMWGuwAAAKoVAAATAAAAcHl4ZWxfcmVzb3VyY2UudG9tbO3SvQ7CIBQF4L1P0QdwqBrdfBJCDIFLIeGnAq2vLzU0bm466BlI7oF7vgkdkxflulDKNob+0u87GV1MuY6Md9KIEMi1dBcL6VposWPMejFS5vXJqmLq9eF07gzZ0ZQWlChiXWcD/1qjWEdeTG871o85yRoG1H+lnuMc1FoOsVD7pCWGbVyim/0WSGuSpYU8Eak6HgcwYMCAAQMGDBgwYMCAAQMGDBgwH2T8nK1cmUy35wLju/51+F/vPABQSwECLgMUAAAACAAAACEANYTFhrsAAACqFQAAEwAAAAAAAAAAAAAApIEAAAAAcHl4ZWxfcmVzb3VyY2UudG9tbFBLBQYAAAAAAQABAEEAAADsAAAAAAA=";
+            }
+
+            safeSetStorageData(json);
+            renderFilesList();
+            notifyCapytaleChange();
+        }
+
+        function renameFile(oldFilename) {
+            let newFilename = prompt(`Renommer ${oldFilename} en :`, oldFilename);
+            if (!newFilename || newFilename === oldFilename) return;
+
+            let ext = newFilename.split('.').pop().toLowerCase();
+            let oldExt = oldFilename.split('.').pop().toLowerCase();
+
+            if (!['py', 'txt', 'pyxres', 'pyxapp'].includes(ext)) {
+                alert(`Le fichier ${newFilename} n'est pas supporté. Seuls .py, .txt, .pyxres et .pyxapp sont autorisés.`);
+                return;
+            }
+
+            if (ext !== oldExt) {
+                if (!confirm(`Attention, vous changez l'extension de .${oldExt} vers .${ext}. Êtes-vous sûr ?`)) {
+                    return;
+                }
+            }
+
+            const json = getStorageData();
+            if (json[newFilename] !== undefined) {
+                alert("Un fichier portant ce nom existe déjà.");
+                return;
+            }
+
+            // Logique de renommage
+            json[newFilename] = json[oldFilename];
+            delete json[oldFilename];
+            safeSetStorageData(json);
+
+            // Mettre à jour les fichiers actifs si nécessaire
+            if (active_py === oldFilename) {
+                active_py = newFilename;
+                document.getElementById('active_py_display').innerText = active_py;
+            }
+            if (active_pyxres === oldFilename) {
+                active_pyxres = newFilename;
+            }
+
+            renderFilesList();
+            notifyCapytaleChange();
+        }
+
+        function deleteFile(filename) {
+            if (confirm(`Êtes-vous sûr de vouloir supprimer ${filename} ?`)) {
+                const json = getStorageData();
+                delete json[filename];
+                safeSetStorageData(json);
+                if (active_py === filename) {
+                    active_py = "app.py";
+                    code_editor.getSession().setValue(json["app.py"] || "", -1);
+                    document.getElementById('active_py_display').innerText = active_py;
+                }
+                if (active_pyxres === filename) {
+                    const remaining = Object.keys(getStorageData()).filter(f => f.endsWith('.pyxres'));
+                    active_pyxres = remaining.length > 0 ? remaining[0] : "";
+                }
+                renderFilesList();
+                notifyCapytaleChange();
+            }
+        }
+
+        function downloadFile(filename) {
+            const json = getStorageData();
+            let content = json[filename];
+            let url;
+
+            let ext = filename.split('.').pop();
+            if (ext === 'pyxres' || ext === 'pyxapp') {
+                // Convertir le base64 en blob
+                const binary = atob(content);
+                const array = new Uint8Array(binary.length);
+                for (let i = 0; i < binary.length; i++) array[i] = binary.charCodeAt(i);
+                const blob = new Blob([array], { type: "application/octet-stream" });
+                url = URL.createObjectURL(blob);
+            } else {
+                // Fichier texte
+                const blob = new Blob([content], { type: "text/plain" });
+                url = URL.createObjectURL(blob);
+            }
+
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function handleFileUpload(event) {
+            const files = event.target.files;
+            if (!files || files.length === 0) return;
+
+            const json = getStorageData();
+            let promises = [];
+
+            for (let i = 0; i < files.length; i++) {
+                let file = files[i];
+                let ext = file.name.split('.').pop().toLowerCase();
+
+                if (!['py', 'txt', 'pyxres', 'pyxapp'].includes(ext)) {
+                    alert(`Le fichier ${file.name} n'est pas supporté. Seuls les fichiers .py, .txt, .pyxres et .pyxapp peuvent être importés.`);
+                    continue;
+                }
+
+                let promise = new Promise((resolve) => {
+                    const reader = new FileReader();
+                    if (ext === 'py' || ext === 'txt') {
+                        reader.onload = function (e) {
+                            json[file.name] = e.target.result;
+                            resolve();
+                        };
+                        reader.readAsText(file);
+                    } else {
+                        reader.onload = function (e) {
+                            json[file.name] = e.target.result.split(',')[1];
+                            resolve();
+                        };
+                        reader.readAsDataURL(file);
+                    }
+                });
+                promises.push(promise);
+            }
+
+            Promise.all(promises).then(() => {
+                safeSetStorageData(json);
+                renderFilesList();
+                notifyCapytaleChange();
+                event.target.value = ''; // réinitialiser l'input
+            });
+        }
+
+        function showDoc(which) {
+            const apiIframe = document.getElementById('iframe-doc-api');
+            const editorIframe = document.getElementById('iframe-doc-editor');
+            const btnApi = document.getElementById('btn-doc-api');
+            const btnEditor = document.getElementById('btn-doc-editor');
+            if (which === 'api') {
+                apiIframe.style.display = 'block';
+                editorIframe.style.display = 'none';
+                btnApi.className = 'btn btn-primary btn-sm me-2';
+                btnEditor.className = 'btn btn-light btn-sm';
+            } else {
+                apiIframe.style.display = 'none';
+                editorIframe.style.display = 'block';
+                if (!editorIframe.src || editorIframe.src === window.location.href) editorIframe.src = editorIframe.dataset.src;
+                btnApi.className = 'btn btn-light btn-sm me-2';
+                btnEditor.className = 'btn btn-primary btn-sm';
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", initApp);
+    </script>
+
+    <script src="assets/js/split-grid.js"></script>
+    <script>
+        Split({
+            minSize: 400,
+            columnGutters: [{
+                track: 1,
+                element: document.querySelector('.gutter-col-1'),
+            }],
+        });
+    </script>
+
+    <!-- Modal À propos -->
+    <div class="modal fade" id="aboutModal" tabindex="-1" aria-labelledby="aboutModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header d-flex align-items-center border-0">
+                    <img src="assets/img/pyxelstudio-logo.png" width="50" height="33" alt="Pyxel Studio" class="me-2" />
+                    <h6 class="modal-title font-monospace fw-bold mb-0" id="aboutModalLabel">Pyxel Studio</h6>
+                    <button type="button" class="btn p-0 ms-auto" style="position:absolute;top:10px;right:12px;text-decoration:none;box-shadow:none;" data-bs-dismiss="modal" aria-label="Fermer"><i class="fa-solid fa-square-xmark fa-xl"></i></button>
+                </div>
+                <div class="modal-body">
+                    <p class="mb-2"><strong>Auteur :</strong> <a href="https://laurentabbal.forge.apps.education.fr/" target="_blank">Laurent Abbal</a></p>
+                    <p class="mb-2"><strong>Licence :</strong> <a href="https://www.gnu.org/licenses/agpl-3.0.txt" target="_blank">AGPL v3</a></p>
+                    <p class="mb-4"><strong>Site :</strong> <a href="https://www.pyxelstudio.net" target="_blank">www.pyxelstudio.net</a></p>
+                    <div class="text-center">
+                        <a href="https://mastodon.social/@pyxelstudio" target="_blank" class="text-dark me-3"><i class="fa-brands fa-mastodon fa-lg"></i></a>
+                        <a href="https://bsky.app/profile/pyxelstudio.bsky.social" target="_blank" class="text-dark me-3"><i class="fa-brands fa-bluesky fa-lg"></i></a>
+                        <a href="https://x.com/pyxel_studio" target="_blank" class="text-dark me-3"><i class="fa-brands fa-x-twitter fa-lg"></i></a>
+                        <a href="https://www.linkedin.com/company/pyxel-studio" target="_blank" class="text-dark"><i class="fa-brands fa-linkedin fa-lg"></i></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+</body>
+
+</html>
