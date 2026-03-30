@@ -694,6 +694,13 @@
                 container.appendChild(createIframe(iframeSrc));
             }
 
+            // S'assurer que les éléments de visibilité sont corrects (cas où le tab
+            // avait été ouvert avant qu'un .pyxres existe, laissant editorDiv caché)
+            document.getElementById('no-pyxres-message').style.display = 'none';
+            container.style.display = '';
+            const icon = document.getElementById('active_pyxres_icon');
+            if (icon) icon.style.display = '';
+
             // Basculer vers l'onglet ressources
             var tab = bootstrap.Tab.getOrCreateInstance(document.querySelector('#pills-resources_editor-tab'));
             tab.show();
