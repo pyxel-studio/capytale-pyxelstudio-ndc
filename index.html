@@ -12,12 +12,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta http-equiv="Content-Security-Policy" content="
         default-src 'self';
-        script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://cdn.jsdelivr.net;
-        style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net;
+        script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://cdn.ac-paris.fr;
+        style-src 'self' 'unsafe-inline';
         font-src 'self';
-        img-src 'self' data: blob: https://cdn.jsdelivr.net;
+        img-src 'self' data: blob:;
         frame-src 'self' https://kitao.github.io;
-        connect-src 'self' blob: https://cdn.jsdelivr.net https://pypi.org https://files.pythonhosted.org;
+        connect-src 'self' blob: https://cdn.ac-paris.fr https://pypi.org https://files.pythonhosted.org;
         worker-src 'self' blob:;
     ">
     <title>Pyxel Studio pour Capytale</title>
@@ -127,8 +127,7 @@
                         </li>
                         <li class="nav-item me-3 mb-1" role="presentation">
                             <button id="pills-documentation-tab" class="btn btn-light btn-sm" style="width:40px"
-                                data-bs-toggle="pill" data-bs-target="#pills-documentation" type="button" role="tab"
-                                aria-controls="pills-documentation" aria-selected="false"><i
+                                type="button" onclick="toggleDocPanel()"><i
                                     class="fa-solid fa-book"></i></button>
                         </li>
                         <li class="nav-item me-1 mb-1" role="presentation">
@@ -184,34 +183,6 @@
                 </div>
                 <!-- /ONGLET - ACCUEIL -->    
                  
-                <!-- ONGLET - DOCUMENTATION -->
-                <div id="pills-documentation" class="tab-pane fade" role="tabpanel"
-                    aria-labelledby="pills-documentation-tab" tabindex="0">
-                    <div class="mt-2 mb-5">
-                        <b>DOCUMENTATION PYXEL</b>
-                        <ul class="mt-2">
-                            <li>Version : <span class="font-monospace text-success fw-bold">2.8.7</span></li>
-                            <li>Documentation officielle : <a href="https://kitao.github.io/pyxel/web/user-guide/"
-                                    class="btn btn-light btn-sm mb-1" role="button" target="_blank"><i
-                                        class="fa-solid fa-book"></i></a></li>
-                        </ul>
-                        <div class="text-center font-monospace mx-2">
-                            <div><img src="assets/img/pyxel-palette.png" class="img-fluid rounded w-100" /></div>
-                            <div style="font-size:70%;color:silver;">source : <a
-                                    href="https://github.com/kitao/pyxel">github.com/kitao/pyxel</a></div>
-                            <div><img src="assets/img/pyxel-screen-tilemap.png" class="mt-3 img-fluid rounded w-100" /></div>
-                            <div style="font-size:70%;color:silver;">source : <a
-                                    href="https://github.com/kitao/pyxel">github.com/kitao/pyxel</a></div>
-                        </div>
-                        <div class="text-center mt-5">
-                            <button id="btn-doc-api" class="btn btn-primary btn-sm me-2" onclick="showDoc('api')">Référence API</button>
-                            <button id="btn-doc-editor" class="btn btn-light btn-sm" onclick="showDoc('editor')">Éditeur Pyxel</button>
-                        </div>
-                        <iframe id="iframe-doc-api" src="https://kitao.github.io/pyxel/web/api-reference/" scrolling="no" class="mx-2" style="width:calc(100% - 1rem);height:15000px;border:none;margin-top:16px;display:block;border-radius:8px;overflow:hidden;"></iframe>
-                        <iframe id="iframe-doc-editor" data-src="https://kitao.github.io/pyxel/web/editor-manual/" scrolling="no" class="mx-2" style="width:calc(100% - 1rem);height:15000px;border:none;margin-top:16px;display:none;border-radius:8px;overflow:hidden;"></iframe>
-                    </div>
-                </div>
-                <!-- /ONGLET - DOCUMENTATION -->
 
                 <!-- ONGLET - FICHIERS -->
                 <div id="pills-files" class="tab-pane fade" role="tabpanel" aria-labelledby="pills-files-tab"
@@ -274,11 +245,34 @@
         <div class="gutter-col gutter-col-1"></div>
 
         <!-- PANNEAU DROIT -->
-        <div style="overflow-y:hidden;padding:0px;margin:0px;height:100%;background-color:#111;">
+        <div style="overflow-y:hidden;padding:0px;margin:0px;height:100%;background-color:#111;position:relative;">
             <div id="pyxel-screen" class="text-center"
                 style="height:100%;position:relative;padding:0px;margin:0px;color:white;">
                 <div class="font-monospace mt-5 pt-5">cliquez sur <button type="button" id="btn-run-code-center"
                         class="btn btn-warning btn-sm ps-3 pe-3"><i class="fas fa-play"></i></button> pour exécuter le code
+                </div>
+            </div>
+            <div id="doc-panel" style="display:none;position:absolute;inset:0;overflow-y:auto;background-color:#fff;padding:16px;">
+                <div class="mt-2 mb-5">
+                    <b>DOCUMENTATION PYXEL</b>
+                    <ul class="mt-2">
+                        <li>Version : <span class="font-monospace text-success fw-bold">2.8.7</span></li>
+                        <li>Documentation officielle : <a href="https://kitao.github.io/pyxel/web/user-guide/"
+                                class="btn btn-light btn-sm mb-1" role="button" target="_blank"><i
+                                    class="fa-solid fa-book"></i></a></li>
+                    </ul>
+                    <div class="text-center font-monospace mx-2">
+                        <div><img src="assets/img/pyxel-palette.png" class="img-fluid rounded w-100" /></div>
+                        <div style="font-size:70%;color:silver;">source : <a href="https://github.com/kitao/pyxel">github.com/kitao/pyxel</a></div>
+                        <div><img src="assets/img/pyxel-screen-tilemap.png" class="mt-3 img-fluid rounded w-100" /></div>
+                        <div style="font-size:70%;color:silver;">source : <a href="https://github.com/kitao/pyxel">github.com/kitao/pyxel</a></div>
+                    </div>
+                    <div class="text-center mt-5">
+                        <button id="btn-doc-api" class="btn btn-primary btn-sm me-2" onclick="showDoc('api')">Référence API</button>
+                        <button id="btn-doc-editor" class="btn btn-light btn-sm" onclick="showDoc('editor')">Éditeur Pyxel</button>
+                    </div>
+                    <iframe id="iframe-doc-api" src="https://kitao.github.io/pyxel/web/api-reference/" scrolling="no" style="width:100%;height:15000px;border:none;margin-top:16px;display:block;border-radius:8px;overflow:hidden;"></iframe>
+                    <iframe id="iframe-doc-editor" data-src="https://kitao.github.io/pyxel/web/editor-manual/" scrolling="no" style="width:100%;height:15000px;border:none;margin-top:16px;display:none;border-radius:8px;overflow:hidden;"></iframe>
                 </div>
             </div>
         </div>
@@ -411,7 +405,7 @@
             }
 
             try {
-                const { getSocket } = await import("https://cdn.jsdelivr.net/npm/@capytale/app-agent/+esm");
+                const { getSocket } = await import("https://cdn.ac-paris.fr/capytale/contracts/1.0/app-agent.min.js");
                 const socket = getSocket();
 
                 // Implémentation du contrat simple-content(json)
@@ -515,6 +509,7 @@
             await forceSavePyxelResource().catch(e => console.warn("Background save failed:", e));
             await updateActivePythonFileContent();
 
+            closeDocPanel();
             var screen = document.getElementById('pyxel-screen');
             screen.innerHTML = '';
             screen.appendChild(createIframe('iframe-screen.html?run=' + encodeURIComponent(active_py)));
@@ -720,6 +715,7 @@
             await forceSavePyxelResource();
             await updateActivePythonFileContent();
 
+            closeDocPanel();
             var screen = document.getElementById('pyxel-screen');
             screen.innerHTML = '';
             screen.appendChild(createIframe('iframe-screen.html?run=' + encodeURIComponent(filename)));
@@ -908,6 +904,26 @@
                 if (!editorIframe.src || editorIframe.src === window.location.href) editorIframe.src = editorIframe.dataset.src;
                 btnApi.className = 'btn btn-light btn-sm me-2';
                 btnEditor.className = 'btn btn-primary btn-sm';
+            }
+        }
+
+        function closeDocPanel() {
+            const docPanel = document.getElementById('doc-panel');
+            const pyxelScreen = document.getElementById('pyxel-screen');
+            const btn = document.getElementById('pills-documentation-tab');
+            docPanel.style.display = 'none';
+            pyxelScreen.style.display = '';
+            btn.classList.remove('active');
+        }
+
+        function toggleDocPanel() {
+            const docPanel = document.getElementById('doc-panel');
+            if (docPanel.style.display !== 'none') {
+                closeDocPanel();
+            } else {
+                docPanel.style.display = 'block';
+                document.getElementById('pyxel-screen').style.display = 'none';
+                document.getElementById('pills-documentation-tab').classList.add('active');
             }
         }
 
