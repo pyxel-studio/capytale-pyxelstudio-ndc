@@ -5,11 +5,11 @@ body {
 }
 
 .ace_gutter {
-    padding-top: 15px;
+    padding-top: 0;
 }
 
 .ace_scroller {
-    top: 15px;
+    top: 0;
 }
 
 .btn-warning {

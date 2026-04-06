@@ -361,6 +361,7 @@
                 tabSize: 4
             });
             code_editor.container.style.lineHeight = 1.5;
+            code_editor.renderer.setScrollMargin(15, 15, 0, 0);
             code_editor.getSession().on('change', function () {
                 notifyCapytaleChange();
             });
@@ -938,6 +939,11 @@
                 track: 1,
                 element: document.querySelector('.gutter-col-1'),
             }],
+            onDrag: function () {
+                if (typeof code_editor !== 'undefined' && code_editor) {
+                    code_editor.resize();
+                }
+            }
         });
     </script>
 
