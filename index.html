@@ -208,12 +208,9 @@
                 <!-- ONGLET - ÉDITEUR DE CODE -->
                 <div class="tab-pane fade active show" id="pills-code_editor" role="tabpanel"
                     aria-labelledby="pills-code_editor-tab" tabindex="0">
-                    <div class="mb-1 ps-1 font-monospace"><i class="fa-solid fa-file-code me-1"></i><b
-                            id="active_py_display">app.py</b></div>
+                    <div class="mb-1 ps-1 font-monospace"><i class="fa-solid fa-file-code me-1"></i><b id="active_py_display">app.py</b></div>
                     <div style="direction:ltr;position:relative;flex-grow:1;min-height:0;">
-                        <div class="w-100 h-100">
-                            <div id="code_editor" style="border-radius:5px;height:100%;"></div>
-                        </div>
+                        <div id="code_editor" style="border-radius:5px;position:absolute;top:0;bottom:0;left:0;right:0;"></div>
                     </div>
                 </div>
                 <!-- /ONGLET - ÉDITEUR DE CODE -->
@@ -347,7 +344,7 @@
                 wrap: true,
                 useWorker: false,
                 readOnly: false,
-                autoScrollEditorIntoView: true,
+                autoScrollEditorIntoView: false,
                 highlightActiveLine: false,
                 highlightSelectedWord: false,
                 highlightGutterLine: true,
