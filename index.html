@@ -1,6 +1,6 @@
 <!--
     Pyxel Studio pour Capytale
-    Version : 2.0.0
+    Version : 2.1.0
     Auteur : Laurent Abbal (https://laurentabbal.forge.apps.education.fr/)
     Licence : AGPL v3 (https://www.gnu.org/licenses/agpl-3.0.txt)
 -->
@@ -12,12 +12,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta http-equiv="Content-Security-Policy" content="
         default-src 'self';
-        script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://cdn.ac-paris.fr;
+        script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://cdn.ac-paris.fr https://cdn.jsdelivr.net;
         style-src 'self' 'unsafe-inline';
         font-src 'self';
         img-src 'self' data: blob:;
         frame-src 'self' https://kitao.github.io;
-        connect-src 'self' blob: https://cdn.ac-paris.fr https://pypi.org https://files.pythonhosted.org;
+        connect-src 'self' blob: https://cdn.ac-paris.fr https://pypi.org https://files.pythonhosted.org https://cdn.jsdelivr.net https://storage.googleapis.com;
         worker-src 'self' blob:;
     ">
     <title>Pyxel Studio pour Capytale</title>
@@ -76,6 +76,27 @@
         .tab-pane.active {
             display: flex;
             flex-direction: column;
+        }
+
+        /* Scrollbar fine de l'éditeur Ace (sans triangles) */
+        .ace_scrollbar::-webkit-scrollbar {
+            width: 6px !important;
+            height: 6px !important;
+        }
+        .ace_scrollbar::-webkit-scrollbar-track {
+            background: transparent !important;
+        }
+        .ace_scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(128, 128, 128, 0.35) !important;
+            border-radius: 3px !important;
+        }
+        .ace_scrollbar::-webkit-scrollbar-thumb:hover {
+            background: rgba(128, 128, 128, 0.55) !important;
+        }
+        .ace_scrollbar::-webkit-scrollbar-button {
+            display: none !important;
+            width: 0 !important;
+            height: 0 !important;
         }
 
         /* Pas de scroll pour les éditeurs, ils ont leur propre scroll interne */
@@ -148,6 +169,12 @@
                                 aria-controls="pills-resources_editor" aria-selected="false"><i
                                     class="fa-solid fa-paintbrush"></i></button>
                         </li>
+                        <li class="nav-item me-1 mb-1" role="presentation">
+                            <button id="pills-webcam-tab" class="btn btn-primary btn-sm" style="width:40px"
+                                data-bs-toggle="pill" data-bs-target="#pills-webcam" type="button" role="tab"
+                                aria-controls="pills-webcam" aria-selected="false"><i
+                                    class="fa-solid fa-video"></i></button>
+                        </li>
                         <li class="nav-item ms-3 mb-1" role="presentation">
                             <button id="btn-run-code" class="btn btn-warning btn-sm" style="width:40px" type="button"><i
                                     class="fas fa-play"></i></button>
@@ -208,7 +235,7 @@
                 <!-- ONGLET - ÉDITEUR DE CODE -->
                 <div class="tab-pane fade active show" id="pills-code_editor" role="tabpanel"
                     aria-labelledby="pills-code_editor-tab" tabindex="0">
-                    <div class="mb-1 ps-1 font-monospace"><i class="fa-solid fa-file-code me-1"></i><b id="active_py_display">app.py</b></div>
+                    <div class="mb-1 ps-1 font-monospace"><i class="fa-solid fa-code me-2" style="color:silver"></i><b id="active_py_display">app.py</b></div>
                     <div style="direction:ltr;position:relative;flex-grow:1;min-height:0;">
                         <div id="code_editor" style="border-radius:5px;position:absolute;top:0;bottom:0;left:0;right:0;"></div>
                     </div>
@@ -218,7 +245,7 @@
                 <!-- ONGLET - ÉDITEUR DE RESSOURCES -->
                 <div id="pills-resources_editor" class="tab-pane fade" role="tabpanel" aria-labelledby="pills-resources_editor-tab" tabindex="0">
                     <div class="mb-1 ps-1 font-monospace">
-                        <i id="active_pyxres_icon" class="fa-solid fa-palette me-1" style="display:none;"></i><b
+                        <i id="active_pyxres_icon" class="fa-solid fa-paintbrush me-2" style="color:silver;display:none;"></i><b
                             id="active_pyxres_display"></b>
                     </div>
                     <div id="no-pyxres-message" class="p-3 font-monospace small" style="display:none;">
@@ -233,6 +260,96 @@
                     <div id="pyxel-editor" style="flex-grow:1;min-height:0;"></div>
                 </div>
                 <!-- /ONGLET - ÉDITEUR DE RESSOURCES -->
+
+                <!-- ONGLET - WEBCAM -->
+                <div id="pills-webcam" class="tab-pane fade" role="tabpanel"
+                    aria-labelledby="pills-webcam-tab" tabindex="0">
+                    <div class="mb-1 ps-1 font-monospace d-flex align-items-center">
+                        <span id="mediapipe-status" class="small text-muted"></span>
+                        <button id="stop-webcam-btn" class="btn btn-sm btn-light ms-2" style="display:none;font-size:12px;" data-bs-toggle="tooltip" data-bs-placement="right" data-bs-title="désactiver la webcam"><i class="fa-solid fa-video-slash"></i></button>
+                    </div>
+                    <div id="mediapipe-container" style="flex-grow:1;min-height:0;display:flex;flex-direction:column;align-items:center;padding:5px;">
+                        <!-- Ecran d'invitation avant activation -->
+                        <div id="webcam-invite" style="text-align:center;padding:20px;max-width:580px;">
+                            <div style="font-size:48px;margin-bottom:12px;"><i class="fa-solid fa-video" style="color:#999;"></i></div>
+                            <p style="color:#555;font-family:sans-serif;font-size:14px;line-height:1.7;margin-bottom:14px;">
+                                Avec Pyxel, vous pouvez contr&ocirc;ler vos jeux par le mouvement : d&eacute;placer un personnage avec le nez, d&eacute;clencher des actions avec les doigts, ou cr&eacute;er des interactions gestuelles. <a href="https://ai.google.dev/edge/mediapipe/solutions/guide" target="_blank"><b>MediaPipe</b></a> d&eacute;tecte en temps r&eacute;el le visage et les mains via la webcam et fournit les coordonn&eacute;es utilisables dans votre code Python.
+                            </p>
+                            <div style="margin-bottom:16px;">
+                                <p style="color:#555;font-family:sans-serif;font-size:13px;margin-bottom:10px;text-align:left;">
+                                    <b>Pr&eacute;requis :</b> ajoutez <code style="background:#fff3cd;padding:2px 6px;border-radius:3px;font-weight:bold;">import js</code> en haut de votre code Python.
+                                </p>
+                                <table style="width:100%;border-collapse:collapse;font-family:sans-serif;font-size:13px;text-align:left;">
+                                    <thead>
+                                        <tr style="background:#e9ecef;">
+                                            <th style="padding:6px 10px;border:1px solid #dee2e6;">Variable Python</th>
+                                            <th style="padding:6px 10px;border:1px solid #dee2e6;">Type</th>
+                                            <th style="padding:6px 10px;border:1px solid #dee2e6;">Description</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr><td colspan="3" style="padding:5px 10px;background:#f8f9fa;border:1px solid #dee2e6;font-weight:bold;color:#333;">Nez</td></tr>
+                                        <tr>
+                                            <td style="padding:4px 10px;border:1px solid #dee2e6;"><code>js.window.noseDetected</code></td>
+                                            <td style="padding:4px 10px;border:1px solid #dee2e6;">bool</td>
+                                            <td style="padding:4px 10px;border:1px solid #dee2e6;">Le nez est-il d&eacute;tect&eacute; ?</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="padding:4px 10px;border:1px solid #dee2e6;"><code>js.window.noseX</code></td>
+                                            <td style="padding:4px 10px;border:1px solid #dee2e6;">float</td>
+                                            <td style="padding:4px 10px;border:1px solid #dee2e6;">Position X du nez (0.0 &agrave; 1.0, gauche &rarr; droite)</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="padding:4px 10px;border:1px solid #dee2e6;"><code>js.window.noseY</code></td>
+                                            <td style="padding:4px 10px;border:1px solid #dee2e6;">float</td>
+                                            <td style="padding:4px 10px;border:1px solid #dee2e6;">Position Y du nez (0.0 &agrave; 1.0, haut &rarr; bas)</td>
+                                        </tr>
+                                        <tr><td colspan="3" style="padding:5px 10px;background:#f8f9fa;border:1px solid #dee2e6;font-weight:bold;color:#333;">Main gauche</td></tr>
+                                        <tr>
+                                            <td style="padding:4px 10px;border:1px solid #dee2e6;"><code>js.window.leftHandDetected</code></td>
+                                            <td style="padding:4px 10px;border:1px solid #dee2e6;">bool</td>
+                                            <td style="padding:4px 10px;border:1px solid #dee2e6;">La main gauche est-elle d&eacute;tect&eacute;e ?</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="padding:4px 10px;border:1px solid #dee2e6;"><code>js.window.leftHand</code></td>
+                                            <td style="padding:4px 10px;border:1px solid #dee2e6;">liste</td>
+                                            <td style="padding:4px 10px;border:1px solid #dee2e6;">21 points (x, y) de la main gauche</td>
+                                        </tr>
+                                        <tr><td colspan="3" style="padding:5px 10px;background:#f8f9fa;border:1px solid #dee2e6;font-weight:bold;color:#333;">Main droite</td></tr>
+                                        <tr>
+                                            <td style="padding:4px 10px;border:1px solid #dee2e6;"><code>js.window.rightHandDetected</code></td>
+                                            <td style="padding:4px 10px;border:1px solid #dee2e6;">bool</td>
+                                            <td style="padding:4px 10px;border:1px solid #dee2e6;">La main droite est-elle d&eacute;tect&eacute;e ?</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="padding:4px 10px;border:1px solid #dee2e6;"><code>js.window.rightHand</code></td>
+                                            <td style="padding:4px 10px;border:1px solid #dee2e6;">liste</td>
+                                            <td style="padding:4px 10px;border:1px solid #dee2e6;">21 points (x, y) de la main droite</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                                <p style="color:#888;font-family:sans-serif;font-size:12px;margin-top:6px;margin-bottom:0;text-align:left;">
+                                    Points des mains : 0=poignet, 4=pouce, 8=index, 12=majeur, 16=annulaire, 20=auriculaire.<br>
+                                    Acc&egrave;s : <code>js.window.leftHand[8].x</code> (position X du bout de l'index gauche).
+                                </p>
+                                <div class="text-start mt-3 mb-4">
+                                    <i class="fa-solid fa-book"></i> Pour en savoir plus, ouvrir "<b>MEDIAPIPE</b>" dans la <span onclick="toggleDocPanel()" class="text-decoration-underline text-primary" style="cursor:pointer">documentation</span>.
+                                </div>
+                            </div>
+                            <button id="toggle-webcam-btn" class="btn btn-warning fw-bold">
+                                Activer la webcam
+                            </button>
+                        </div>
+                        <!-- Canvas et infos (caches par defaut) -->
+                        <div id="webcam-preview-wrapper" style="display:none;width:100%;text-align:center;">
+                            <canvas id="mediapipe-preview" width="640" height="480" style="width:100%;background:#000;border-radius:5px;aspect-ratio:4/3;"></canvas>
+                            <div class="mt-2" style="padding:0 2px;">
+                                <div id="nose-info" class="font-monospace small" style="color:#888;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- /ONGLET - WEBCAM -->
 
             </div>
 
@@ -253,7 +370,7 @@
                 <div class="mt-2 mb-5">
                     <b>DOCUMENTATION PYXEL</b>
                     <ul class="mt-2">
-                        <li>Version : <span class="font-monospace text-success fw-bold">2.8.7</span></li>
+                        <li>Version : <span id="pyxel-version-display" class="font-monospace text-success fw-bold">—</span></li>
                         <li>Documentation officielle : <a href="https://kitao.github.io/pyxel/web/user-guide/"
                                 class="btn btn-light btn-sm mb-1" role="button" target="_blank"><i
                                     class="fa-solid fa-book"></i></a></li>
@@ -266,10 +383,92 @@
                     </div>
                     <div class="text-center mt-5">
                         <button id="btn-doc-api" class="btn btn-primary btn-sm me-2" onclick="showDoc('api')">Référence API</button>
-                        <button id="btn-doc-editor" class="btn btn-light btn-sm" onclick="showDoc('editor')">Éditeur Pyxel</button>
+                        <button id="btn-doc-editor" class="btn btn-light btn-sm me-2" onclick="showDoc('editor')">Éditeur Pyxel</button>
+                        <button id="btn-doc-mediapipe" class="btn btn-light btn-sm" onclick="showDoc('mediapipe')">MediaPipe</button>
                     </div>
                     <iframe id="iframe-doc-api" src="https://kitao.github.io/pyxel/web/api-reference/" scrolling="no" style="width:100%;height:15000px;border:none;margin-top:16px;display:block;border-radius:8px;overflow:hidden;"></iframe>
                     <iframe id="iframe-doc-editor" data-src="https://kitao.github.io/pyxel/web/editor-manual/" scrolling="no" style="width:100%;height:15000px;border:none;margin-top:16px;display:none;border-radius:8px;overflow:hidden;"></iframe>
+                    <div id="doc-mediapipe" style="display:none;margin-top:16px;padding:16px;background:#f8f9fa;border-radius:8px;">
+                        <h5 class="mb-3">MediaPipe &mdash; Webcam &amp; d&eacute;tection</h5>
+
+                        <p><a href="https://ai.google.dev/edge/mediapipe/solutions/guide" target="_blank"><b>MediaPipe</b></a> d&eacute;tecte en temps r&eacute;el le visage et les mains via la webcam. Les coordonn&eacute;es sont accessibles dans votre code Python.</p>
+
+                        <div class="alert alert-warning py-2 px-3" style="font-size:13px;">
+                            <b>Pr&eacute;requis :</b> ajoutez <code style="font-weight:bold;">import js</code> en haut de votre code Python pour acc&eacute;der aux variables MediaPipe.
+                        </div>
+
+                        <h6 class="mt-4 mb-2">Variables disponibles</h6>
+                        <table class="table table-bordered table-sm" style="font-size:13px;">
+                            <thead class="table-light">
+                                <tr><th>Variable Python</th><th>Type</th><th>Description</th></tr>
+                            </thead>
+                            <tbody>
+                                <tr><td colspan="3" class="table-light fw-bold">Nez</td></tr>
+                                <tr><td><code>js.window.noseDetected</code></td><td>bool</td><td>Le nez est-il d&eacute;tect&eacute; ?</td></tr>
+                                <tr><td><code>js.window.noseX</code></td><td>float</td><td>Position X du nez (0.0 &agrave; 1.0, gauche &rarr; droite)</td></tr>
+                                <tr><td><code>js.window.noseY</code></td><td>float</td><td>Position Y du nez (0.0 &agrave; 1.0, haut &rarr; bas)</td></tr>
+                                <tr><td colspan="3" class="table-light fw-bold">Main gauche</td></tr>
+                                <tr><td><code>js.window.leftHandDetected</code></td><td>bool</td><td>La main gauche est-elle d&eacute;tect&eacute;e ?</td></tr>
+                                <tr><td><code>js.window.leftHand</code></td><td>liste</td><td>21 points (x, y) de la main gauche</td></tr>
+                                <tr><td colspan="3" class="table-light fw-bold">Main droite</td></tr>
+                                <tr><td><code>js.window.rightHandDetected</code></td><td>bool</td><td>La main droite est-elle d&eacute;tect&eacute;e ?</td></tr>
+                                <tr><td><code>js.window.rightHand</code></td><td>liste</td><td>21 points (x, y) de la main droite</td></tr>
+                            </tbody>
+                        </table>
+                        <p style="font-size:12px;color:#666;">Points des mains : 0=poignet, 4=pouce, 8=index, 12=majeur, 16=annulaire, 20=auriculaire.<br>Acc&egrave;s : <code>js.window.leftHand[8].x</code> (position X du bout de l'index gauche).</p>
+
+                        <h6 class="mt-4 mb-2">Adapter les coordonn&eacute;es &agrave; la taille de votre jeu</h6>
+                        <p>Les valeurs <code>noseX</code>, <code>noseY</code> et les coordonn&eacute;es des mains sont <b>normalis&eacute;es entre 0.0 et 1.0</b>. Pour les utiliser dans votre jeu, il faut les multiplier par la taille de l'&eacute;cran Pyxel.</p>
+                        <p>Par exemple, pour un &eacute;cran de <b>160 x 120</b> pixels :</p>
+<pre style="background:#282c34;border-radius:5px;padding:12px;font-size:13px;color:#abb2bf;"><code><span style="color:#c678dd;">import</span> js
+
+LARGEUR = <span style="color:#d19a66;">160</span>
+HAUTEUR = <span style="color:#d19a66;">120</span>
+
+<span style="color:#7f848e;"># Position du nez dans le jeu</span>
+x = js.window.noseX * LARGEUR
+y = js.window.noseY * HAUTEUR
+
+<span style="color:#7f848e;"># Position de l'index de la main droite</span>
+ix = js.window.rightHand[<span style="color:#d19a66;">8</span>].x * LARGEUR
+iy = js.window.rightHand[<span style="color:#d19a66;">8</span>].y * HAUTEUR</code></pre>
+                        <p style="font-size:12px;color:#666;margin-top:8px;">Adaptez <code>LARGEUR</code> et <code>HAUTEUR</code> aux valeurs pass&eacute;es &agrave; <code>pyxel.init(largeur, hauteur)</code>.</p>
+
+                        <h6 class="mt-4 mb-2">Zone de d&eacute;tection (carr&eacute; sur la webcam)</h6>
+                        <p>Sur la preview webcam, un carr&eacute; en pointill&eacute;s est affich&eacute; dans les 2/3 sup&eacute;rieurs de l'image. Il est d&eacute;fini par la ligne horizontale &agrave; 2/3 de la hauteur et deux lignes verticales centr&eacute;es qui montent jusqu'en haut, formant un carr&eacute; dont le c&ocirc;t&eacute; vaut 2/3 de la hauteur de l'image.</p>
+                        <p>Cette zone carr&eacute;e est pratique pour mapper la position d'une main directement sur l'&eacute;cran de jeu (qui est souvent carr&eacute;).</p>
+                        <p>Les coordonn&eacute;es de cette zone en valeurs normalis&eacute;es (0.0 &agrave; 1.0) sont :</p>
+                        <ul>
+                            <li><b>Y</b> : de <code>0.0</code> (haut) &agrave; <code>0.667</code> (2/3)</li>
+                            <li><b>X</b> : centr&eacute; horizontalement, le c&ocirc;t&eacute; du carr&eacute; = 2/3 de la hauteur de l'image</li>
+                        </ul>
+                        <p>Pour convertir la position d'un point (par exemple l'index de la main droite) dans cette zone en coordonn&eacute;es de jeu :</p>
+<pre style="background:#282c34;border-radius:5px;padding:12px;font-size:13px;color:#abb2bf;"><code><span style="color:#c678dd;">import</span> js
+
+LARGEUR = <span style="color:#d19a66;">128</span>
+HAUTEUR = <span style="color:#d19a66;">128</span>
+
+<span style="color:#7f848e;"># Limites de la zone de detection (valeurs normalisees)</span>
+ZONE_COTE = <span style="color:#d19a66;">2</span> / <span style="color:#d19a66;">3</span>                     <span style="color:#7f848e;"># taille du cote</span>
+ZONE_Y_MIN = <span style="color:#d19a66;">0.0</span>                      <span style="color:#7f848e;"># haut du carre</span>
+ZONE_Y_MAX = <span style="color:#d19a66;">2</span> / <span style="color:#d19a66;">3</span>                    <span style="color:#7f848e;"># bas du carre</span>
+ZONE_X_MIN = <span style="color:#d19a66;">0.5</span> - ZONE_COTE / <span style="color:#d19a66;">2</span>     <span style="color:#7f848e;"># bord gauche du carre</span>
+ZONE_X_MAX = <span style="color:#d19a66;">0.5</span> + ZONE_COTE / <span style="color:#d19a66;">2</span>     <span style="color:#7f848e;"># bord droit du carre</span>
+
+<span style="color:#c678dd;">if</span> js.window.rightHandDetected:
+    <span style="color:#7f848e;"># Position brute de l'index</span>
+    ix = js.window.rightHand[<span style="color:#d19a66;">8</span>].x
+    iy = js.window.rightHand[<span style="color:#d19a66;">8</span>].y
+
+    <span style="color:#7f848e;"># Convertir en coordonnees de jeu (0 a LARGEUR/HAUTEUR)</span>
+    jeu_x = (ix - ZONE_X_MIN) / ZONE_COTE * LARGEUR
+    jeu_y = (iy - ZONE_Y_MIN) / ZONE_COTE * HAUTEUR
+
+    <span style="color:#7f848e;"># Limiter aux bords de l'ecran</span>
+    jeu_x = <span style="color:#61afef;">max</span>(<span style="color:#d19a66;">0</span>, <span style="color:#61afef;">min</span>(LARGEUR, jeu_x))
+    jeu_y = <span style="color:#61afef;">max</span>(<span style="color:#d19a66;">0</span>, <span style="color:#61afef;">min</span>(HAUTEUR, jeu_y))</code></pre>
+                        <p style="font-size:12px;color:#666;margin-top:8px;">Le point est ainsi mapp&eacute; dans le carr&eacute; de d&eacute;tection : quand la main est en haut &agrave; gauche du carr&eacute;, les coordonn&eacute;es valent (0, 0) ; en bas &agrave; droite, elles valent (LARGEUR, HAUTEUR).</p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -382,6 +581,14 @@
                 preloadResourceEditor();
             }
         }
+
+        // Écouter la version Pyxel transmise par l'iframe d'exécution
+        window.addEventListener('message', function(event) {
+            if (event.data && event.data.type === 'pyxel-version') {
+                var el = document.getElementById('pyxel-version-display');
+                if (el) el.textContent = event.data.version;
+            }
+        });
     </script>
 
     <script>
@@ -889,19 +1096,26 @@
         function showDoc(which) {
             const apiIframe = document.getElementById('iframe-doc-api');
             const editorIframe = document.getElementById('iframe-doc-editor');
+            const mediapipeDiv = document.getElementById('doc-mediapipe');
             const btnApi = document.getElementById('btn-doc-api');
             const btnEditor = document.getElementById('btn-doc-editor');
+            const btnMediapipe = document.getElementById('btn-doc-mediapipe');
+            apiIframe.style.display = 'none';
+            editorIframe.style.display = 'none';
+            mediapipeDiv.style.display = 'none';
+            btnApi.className = 'btn btn-light btn-sm me-2';
+            btnEditor.className = 'btn btn-light btn-sm me-2';
+            btnMediapipe.className = 'btn btn-light btn-sm';
             if (which === 'api') {
                 apiIframe.style.display = 'block';
-                editorIframe.style.display = 'none';
                 btnApi.className = 'btn btn-primary btn-sm me-2';
-                btnEditor.className = 'btn btn-light btn-sm';
-            } else {
-                apiIframe.style.display = 'none';
+            } else if (which === 'editor') {
                 editorIframe.style.display = 'block';
                 if (!editorIframe.src || editorIframe.src === window.location.href) editorIframe.src = editorIframe.dataset.src;
-                btnApi.className = 'btn btn-light btn-sm me-2';
-                btnEditor.className = 'btn btn-primary btn-sm';
+                btnEditor.className = 'btn btn-primary btn-sm me-2';
+            } else if (which === 'mediapipe') {
+                mediapipeDiv.style.display = 'block';
+                btnMediapipe.className = 'btn btn-primary btn-sm';
             }
         }
 
@@ -926,6 +1140,385 @@
         }
 
         document.addEventListener("DOMContentLoaded", initApp);
+
+        // ==================================================================
+        // MEDIAPIPE : detection nez + mains
+        // ==================================================================
+        var HAND_CONNECTIONS = [
+            [0, 1], [1, 2], [2, 3], [3, 4],
+            [0, 5], [5, 6], [6, 7], [7, 8],
+            [0, 9], [9, 10], [10, 11], [11, 12],
+            [0, 13], [13, 14], [14, 15], [15, 16],
+            [0, 17], [17, 18], [18, 19], [19, 20],
+            [5, 9], [9, 13], [13, 17],
+        ];
+
+        var mpNoseX = 0, mpNoseY = 0, mpNoseDetected = false;
+        var mpLeftHandDetected = false, mpLeftHandLandmarks = [];
+        var mpRightHandDetected = false, mpRightHandLandmarks = [];
+        var mpCW = 640, mpCH = 480;
+        var mpVideoElement = null;
+        var mpStream = null;
+        var mpRunning = false;
+        var mpAnimFrame = null;
+
+        // Variables globales exposees a l'iframe (Python)
+        window.noseGameDetected = false;
+        window.noseGameX = 0;
+        window.noseGameY = 0;
+        window.noseDetected = false;
+        window.noseX = 0;
+        window.noseY = 0;
+        window.leftHandDetected = false;
+        window.leftHand = [];
+        window.rightHandDetected = false;
+        window.rightHand = [];
+
+        async function initMediaPipe() {
+            var statusEl = document.getElementById('mediapipe-status');
+            if (statusEl) statusEl.textContent = 'Chargement...';
+
+            var v = await import("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/vision_bundle.mjs");
+            var FaceLandmarker = v.FaceLandmarker;
+            var HandLandmarker = v.HandLandmarker;
+            var FilesetResolver = v.FilesetResolver;
+
+            var filesetResolver = await FilesetResolver.forVisionTasks(
+                "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/wasm"
+            );
+
+            var faceLandmarker = await FaceLandmarker.createFromOptions(filesetResolver, {
+                baseOptions: {
+                    modelAssetPath: "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task",
+                    delegate: "GPU",
+                },
+                runningMode: "VIDEO",
+                numFaces: 1,
+            });
+
+            var handLandmarker = await HandLandmarker.createFromOptions(filesetResolver, {
+                baseOptions: {
+                    modelAssetPath: "https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task",
+                    delegate: "GPU",
+                },
+                runningMode: "VIDEO",
+                numHands: 2,
+            });
+
+            mpVideoElement = document.createElement("video");
+            mpVideoElement.setAttribute("autoplay", "");
+            mpVideoElement.setAttribute("playsinline", "");
+            mpVideoElement.style.display = "none";
+            document.body.appendChild(mpVideoElement);
+
+            mpStream = await navigator.mediaDevices.getUserMedia({ video: true });
+            mpVideoElement.srcObject = mpStream;
+            await mpVideoElement.play();
+
+            mpCW = mpVideoElement.videoWidth || 640;
+            mpCH = mpVideoElement.videoHeight || 480;
+
+            var previewCanvas = document.getElementById("mediapipe-preview");
+            previewCanvas.width = mpCW;
+            previewCanvas.height = mpCH;
+            previewCanvas.style.aspectRatio = mpCW + " / " + mpCH;
+            var canvasCtx = previewCanvas.getContext("2d");
+
+            if (statusEl) { statusEl.innerHTML = '<b>Webcam active</b>'; }
+            mpRunning = true;
+
+            function detect() {
+                if (!mpRunning) return;
+                if (mpVideoElement.readyState >= 2) {
+                    var timestamp = performance.now();
+
+                    // Detection visage (nez = landmark 1)
+                    var faceResults = faceLandmarker.detectForVideo(mpVideoElement, timestamp);
+                    if (faceResults.faceLandmarks && faceResults.faceLandmarks.length > 0) {
+                        var nose = faceResults.faceLandmarks[0][1];
+                        mpNoseX = nose.x;
+                        mpNoseY = nose.y;
+                        mpNoseDetected = true;
+                    } else {
+                        mpNoseDetected = false;
+                    }
+
+                    if (mpNoseDetected) {
+                        window.noseGameX = (1 - mpNoseX) * 128;
+                        window.noseGameY = mpNoseY * 128;
+                        window.noseGameDetected = true;
+                        window.noseDetected = true;
+                        window.noseX = 1 - mpNoseX;
+                        window.noseY = mpNoseY;
+                    } else {
+                        window.noseGameDetected = false;
+                        window.noseDetected = false;
+                    }
+
+                    // Detection mains
+                    var handResults = handLandmarker.detectForVideo(mpVideoElement, timestamp + 1);
+                    mpLeftHandDetected = false;
+                    mpRightHandDetected = false;
+
+                    if (handResults.landmarks && handResults.landmarks.length > 0) {
+                        for (var i = 0; i < handResults.landmarks.length; i++) {
+                            var handedness = handResults.handednesses[i][0].categoryName;
+                            if (handedness === "Left") {
+                                mpRightHandDetected = true;
+                                mpRightHandLandmarks = handResults.landmarks[i];
+                            } else {
+                                mpLeftHandDetected = true;
+                                mpLeftHandLandmarks = handResults.landmarks[i];
+                            }
+                        }
+                    }
+
+                    // Exposer mains a Python (coordonnees en miroir)
+                    if (mpLeftHandDetected) {
+                        window.leftHandDetected = true;
+                        var ptsL = [];
+                        for (var j = 0; j < mpLeftHandLandmarks.length; j++) {
+                            ptsL.push({ x: 1 - mpLeftHandLandmarks[j].x, y: mpLeftHandLandmarks[j].y });
+                        }
+                        window.leftHand = ptsL;
+                    } else {
+                        window.leftHandDetected = false;
+                    }
+
+                    if (mpRightHandDetected) {
+                        window.rightHandDetected = true;
+                        var ptsR = [];
+                        for (var j = 0; j < mpRightHandLandmarks.length; j++) {
+                            ptsR.push({ x: 1 - mpRightHandLandmarks[j].x, y: mpRightHandLandmarks[j].y });
+                        }
+                        window.rightHand = ptsR;
+                    } else {
+                        window.rightHandDetected = false;
+                    }
+
+                    // Envoyer les variables MediaPipe a l'iframe du jeu via postMessage
+                    try {
+                        var gameIframe = document.querySelector('#pyxel-screen iframe');
+                        if (gameIframe && gameIframe.contentWindow) {
+                            gameIframe.contentWindow.postMessage({
+                                type: 'mediapipe',
+                                noseDetected: window.noseDetected,
+                                noseX: window.noseX,
+                                noseY: window.noseY,
+                                noseGameDetected: window.noseGameDetected,
+                                noseGameX: window.noseGameX,
+                                noseGameY: window.noseGameY,
+                                leftHandDetected: window.leftHandDetected,
+                                leftHand: window.leftHand,
+                                rightHandDetected: window.rightHandDetected,
+                                rightHand: window.rightHand
+                            }, '*');
+                        }
+                    } catch(e) {}
+
+                    // Mise a jour affichage coordonnees du nez
+                    var noseInfo = document.getElementById("nose-info");
+                    if (noseInfo) {
+                        if (mpNoseDetected) {
+                            noseInfo.textContent = "Nez: X=" + (1 - mpNoseX).toFixed(3) + " , Y=" + mpNoseY.toFixed(3);
+                        } else {
+                            noseInfo.textContent = "Nez: non detecte";
+                        }
+                    }
+
+                    // --- Dessin ---
+                    canvasCtx.fillStyle = "#000";
+                    canvasCtx.fillRect(0, 0, mpCW, mpCH);
+
+                    // Zone de detection : carre dont le bas est a 2/3 et le haut a 0
+                    var zoneBottom = Math.round(mpCH * 2 / 3);
+                    var zoneSide = zoneBottom; // cote du carre = 2/3 de la hauteur
+                    var zoneX1 = Math.round((mpCW - zoneSide) / 2);
+                    var zoneX2 = zoneX1 + zoneSide;
+                    canvasCtx.strokeStyle = "rgba(255, 255, 255, 0.2)";
+                    canvasCtx.lineWidth = 1;
+                    canvasCtx.setLineDash([6, 4]);
+                    // Ligne horizontale a 2/3
+                    canvasCtx.beginPath();
+                    canvasCtx.moveTo(0, zoneBottom);
+                    canvasCtx.lineTo(mpCW, zoneBottom);
+                    canvasCtx.stroke();
+                    // Deux lignes verticales du bas (2/3) jusqu'en haut (0)
+                    canvasCtx.beginPath();
+                    canvasCtx.moveTo(zoneX1, zoneBottom);
+                    canvasCtx.lineTo(zoneX1, 0);
+                    canvasCtx.stroke();
+                    canvasCtx.beginPath();
+                    canvasCtx.moveTo(zoneX2, zoneBottom);
+                    canvasCtx.lineTo(zoneX2, 0);
+                    canvasCtx.stroke();
+                    canvasCtx.setLineDash([]);
+
+                    // Visage
+                    if (faceResults.faceLandmarks && faceResults.faceLandmarks.length > 0) {
+                        var facePts = faceResults.faceLandmarks[0];
+                        var faceKeyPts = [10,338,297,332,284,251,389,356,454,323,361,288,397,365,379,378,400,377,152,148,176,149,150,136,172,58,132,93,234,127,162,21,54,103,67,109,33,7,163,144,145,153,154,155,133,173,157,158,159,160,161,246,263,249,390,373,374,380,381,382,362,398,384,385,386,387,388,466,70,63,105,66,107,300,293,334,296,336,61,185,40,39,37,0,267,269,270,409,291,146,91,181,84,17,314,405,321,375,168,6,197,195,5,4,45,220,115,48,278,440,344,275];
+                        canvasCtx.fillStyle = "white";
+                        for (var fi = 0; fi < faceKeyPts.length; fi++) {
+                            var pt = facePts[faceKeyPts[fi]];
+                            var fx = (1 - pt.x) * mpCW;
+                            var fy = pt.y * mpCH;
+                            canvasCtx.beginPath();
+                            canvasCtx.arc(fx, fy, 3, 0, Math.PI * 2);
+                            canvasCtx.fill();
+                        }
+                        // Nez en violet
+                        var nose = facePts[1];
+                        var nx = (1 - nose.x) * mpCW;
+                        var ny = nose.y * mpCH;
+                        canvasCtx.fillStyle = "#a855f7";
+                        canvasCtx.beginPath();
+                        canvasCtx.arc(nx, ny, 6, 0, Math.PI * 2);
+                        canvasCtx.fill();
+                        canvasCtx.strokeStyle = "#fff";
+                        canvasCtx.lineWidth = 1;
+                        canvasCtx.stroke();
+                    }
+
+                    function drawHand(landmarks) {
+                        // Connexions en bleu
+                        canvasCtx.strokeStyle = "rgba(59, 130, 246, 0.8)";
+                        canvasCtx.lineWidth = 3;
+                        for (var j = 0; j < HAND_CONNECTIONS.length; j++) {
+                            var a = HAND_CONNECTIONS[j][0], b = HAND_CONNECTIONS[j][1];
+                            var ax = (1 - landmarks[a].x) * mpCW, ay = landmarks[a].y * mpCH;
+                            var bx = (1 - landmarks[b].x) * mpCW, by = landmarks[b].y * mpCH;
+                            canvasCtx.beginPath();
+                            canvasCtx.moveTo(ax, ay);
+                            canvasCtx.lineTo(bx, by);
+                            canvasCtx.stroke();
+                        }
+                        // Points en violet avec contour blanc
+                        for (var k = 0; k < landmarks.length; k++) {
+                            var px = (1 - landmarks[k].x) * mpCW, py = landmarks[k].y * mpCH;
+                            canvasCtx.fillStyle = "#a855f7";
+                            canvasCtx.beginPath();
+                            canvasCtx.arc(px, py, 4, 0, Math.PI * 2);
+                            canvasCtx.fill();
+                            canvasCtx.strokeStyle = "#fff";
+                            canvasCtx.lineWidth = 1;
+                            canvasCtx.stroke();
+                            // Numero du point en dore avec contour noir
+                            canvasCtx.font = "bold 12px monospace";
+                            canvasCtx.textAlign = "center";
+                            canvasCtx.lineWidth = 2;
+                            canvasCtx.strokeStyle = "#000";
+                            canvasCtx.strokeText(String(k), px, py - 12);
+                            canvasCtx.fillStyle = "#fbbf24";
+                            canvasCtx.fillText(String(k), px, py - 12);
+                        }
+                    }
+
+                    if (mpLeftHandDetected) drawHand(mpLeftHandLandmarks);
+                    if (mpRightHandDetected) drawHand(mpRightHandLandmarks);
+                }
+
+                mpAnimFrame = requestAnimationFrame(detect);
+            }
+
+            detect();
+        }
+
+        function stopMediaPipe() {
+            mpRunning = false;
+            if (mpAnimFrame) {
+                cancelAnimationFrame(mpAnimFrame);
+                mpAnimFrame = null;
+            }
+            if (mpStream) {
+                mpStream.getTracks().forEach(function(t) { t.stop(); });
+                mpStream = null;
+            }
+            if (mpVideoElement) {
+                mpVideoElement.pause();
+                mpVideoElement.srcObject = null;
+                mpVideoElement.remove();
+                mpVideoElement = null;
+            }
+            // Reset des variables globales
+            window.noseDetected = false;
+            window.noseGameDetected = false;
+            window.leftHandDetected = false;
+            window.rightHandDetected = false;
+            // Effacer le canvas
+            var c = document.getElementById("mediapipe-preview");
+            if (c) {
+                var ctx = c.getContext("2d");
+                ctx.fillStyle = "#000";
+                ctx.fillRect(0, 0, c.width, c.height);
+            }
+            var statusEl = document.getElementById('mediapipe-status');
+            if (statusEl) statusEl.textContent = '';
+            var noseInfo = document.getElementById("nose-info");
+            if (noseInfo) noseInfo.textContent = '';
+        }
+
+        // Toggle webcam on/off
+        var webcamActive = false;
+
+        function showWebcamError() {
+            document.getElementById('webcam-invite').style.display = 'none';
+            document.getElementById('webcam-preview-wrapper').style.display = 'none';
+            // Supprimer un eventuel ancien message d'erreur
+            var old = document.getElementById('webcam-error-msg');
+            if (old) old.remove();
+            var errDiv = document.createElement('div');
+            errDiv.id = 'webcam-error-msg';
+            errDiv.style.cssText = 'max-width:650px;text-align:center;padding:20px;';
+            errDiv.innerHTML = '\
+                <div style="font-size:48px;margin-bottom:16px;">&#128247;</div>\
+                <h5 class="font-monospace fw-bold" style="color:#333;margin-bottom:12px;">Webcam non disponible</h5>\
+                <div style="text-align:left;background:#f1f3f5;border-radius:8px;padding:16px;color:#555;font-family:sans-serif;font-size:13px;line-height:1.8;">\
+                    <strong style="color:#333;">Solutions possibles :</strong><br>\
+                    <span style="color:#e67e00;">1.</span> Autorisez l\'acc\u00e8s \u00e0 la cam\u00e9ra dans la bo\u00eete de dialogue du navigateur<br>\
+                    <span style="color:#e67e00;">2.</span> V\u00e9rifiez que votre webcam est bien branch\u00e9e et allum\u00e9e<br>\
+                    <span style="color:#e67e00;">3.</span> Fermez les autres applications qui utilisent la cam\u00e9ra (Zoom, Teams, etc.)<br>\
+                    <span style="color:#e67e00;">4.</span> Allez dans les param\u00e8tres du navigateur &rarr; Confidentialit\u00e9 &rarr; Cam\u00e9ra, et autorisez ce site<br>\
+                    <span style="color:#e67e00;">5.</span> Essayez avec un autre navigateur (Chrome ou Edge recommand\u00e9)\
+                </div>\
+                <button id="webcam-retry-btn" class="btn btn-warning fw-bold" style="margin-top:16px;padding:10px 28px;font-size:15px;">R\u00e9essayer</button>';
+            document.getElementById('mediapipe-container').appendChild(errDiv);
+            document.getElementById('webcam-retry-btn').addEventListener('click', function() {
+                errDiv.remove();
+                document.getElementById('webcam-invite').style.display = '';
+            });
+        }
+
+        function activateWebcam() {
+            webcamActive = true;
+            document.getElementById('webcam-invite').style.display = 'none';
+            var statusEl = document.getElementById('mediapipe-status');
+            if (statusEl) statusEl.textContent = 'Chargement...';
+            initMediaPipe().then(function() {
+                document.getElementById('webcam-preview-wrapper').style.display = '';
+                document.getElementById('stop-webcam-btn').style.display = '';
+            }).catch(function(err) {
+                console.error("Erreur MediaPipe / Webcam :", err);
+                webcamActive = false;
+                var statusEl = document.getElementById('mediapipe-status');
+                if (statusEl) statusEl.textContent = '';
+                document.getElementById('stop-webcam-btn').style.display = 'none';
+                showWebcamError();
+            });
+        }
+
+        function deactivateWebcam() {
+            webcamActive = false;
+            stopMediaPipe();
+            document.getElementById('webcam-preview-wrapper').style.display = 'none';
+            document.getElementById('stop-webcam-btn').style.display = 'none';
+            document.getElementById('webcam-invite').style.display = '';
+        }
+
+        document.addEventListener("DOMContentLoaded", function() {
+            document.getElementById("toggle-webcam-btn").addEventListener("click", activateWebcam);
+            document.getElementById("stop-webcam-btn").addEventListener("click", deactivateWebcam);
+        });
     </script>
 
     <script src="assets/js/split-grid.js"></script>

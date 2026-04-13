@@ -1,6 +1,6 @@
 <!--
     Pyxel Studio pour Capytale
-    Version : 2.0.0
+    Version : 2.1.0
     Auteur : Laurent Abbal (https://laurentabbal.forge.apps.education.fr/)
     Licence : AGPL v3 (https://www.gnu.org/licenses/agpl-3.0.txt)
 -->
@@ -159,7 +159,12 @@
 			// Extraire la version de Pyxel depuis le message de lancement
 			if (typeof message === 'string' && message.startsWith("Launch Pyxel")) {
 				var match = message.match(/Launch Pyxel (\S+)/);
-				if (match) window._pyxelVersion = match[1];
+				if (match) {
+					window._pyxelVersion = match[1];
+					if (window.parent !== window) {
+						window.parent.postMessage({ type: 'pyxel-version', version: match[1] }, '*');
+					}
+				}
 				return; // Ne pas afficher ce message
 			}
 			if (message !== 'Wake Lock active.' && message !== 'Wake Lock released.'
@@ -300,7 +305,36 @@
 	}
 	</script>   
 	
-	<script src="https://cdn.jsdelivr.net/gh/kitao/pyxel/wasm/pyxel.js"></script>	
+    <script>
+    // Bridge MediaPipe : initialiser les variables
+    window.noseDetected = false;
+    window.noseX = 0;
+    window.noseY = 0;
+    window.noseGameDetected = false;
+    window.noseGameX = 0;
+    window.noseGameY = 0;
+    window.leftHandDetected = false;
+    window.leftHand = [];
+    window.rightHandDetected = false;
+    window.rightHand = [];
+
+    // Recevoir les donnees MediaPipe du parent via postMessage
+    window.addEventListener('message', function(e) {
+        if (e.data && e.data.type === 'mediapipe') {
+            window.noseDetected = e.data.noseDetected;
+            window.noseX = e.data.noseX;
+            window.noseY = e.data.noseY;
+            window.noseGameDetected = e.data.noseGameDetected;
+            window.noseGameX = e.data.noseGameX;
+            window.noseGameY = e.data.noseGameY;
+            window.leftHandDetected = e.data.leftHandDetected;
+            window.leftHand = e.data.leftHand;
+            window.rightHandDetected = e.data.rightHandDetected;
+            window.rightHand = e.data.rightHand;
+        }
+    });
+    </script>
+	<script src="https://cdn.jsdelivr.net/gh/kitao/pyxel/wasm/pyxel.js"></script>
 	<pyxel-run
       root="https://cdn.jsdelivr.net/gh/kitao/pyxel/wasm/"
 	  script="
