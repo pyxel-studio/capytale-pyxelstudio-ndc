@@ -12,12 +12,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta http-equiv="Content-Security-Policy" content="
         default-src 'self';
-        script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://cdn.ac-paris.fr https://cdn.jsdelivr.net;
+        script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://cdn.ac-paris.fr;
         style-src 'self' 'unsafe-inline';
         font-src 'self';
         img-src 'self' data: blob:;
         frame-src 'self' https://kitao.github.io;
-        connect-src 'self' blob: https://cdn.ac-paris.fr https://pypi.org https://files.pythonhosted.org https://cdn.jsdelivr.net https://storage.googleapis.com;
+        connect-src 'self' blob: https://cdn.ac-paris.fr https://pypi.org https://files.pythonhosted.org;
         worker-src 'self' blob:;
     ">
     <title>Pyxel Studio pour Capytale</title>
@@ -1178,18 +1178,18 @@ ZONE_X_MAX = <span style="color:#d19a66;">0.5</span> + ZONE_COTE / <span style="
             var statusEl = document.getElementById('mediapipe-status');
             if (statusEl) statusEl.textContent = 'Chargement...';
 
-            var v = await import("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/vision_bundle.mjs");
+            var v = await import("assets/mediapipe/vision_bundle.mjs");
             var FaceLandmarker = v.FaceLandmarker;
             var HandLandmarker = v.HandLandmarker;
             var FilesetResolver = v.FilesetResolver;
 
             var filesetResolver = await FilesetResolver.forVisionTasks(
-                "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/wasm"
+                "assets/mediapipe/wasm"
             );
 
             var faceLandmarker = await FaceLandmarker.createFromOptions(filesetResolver, {
                 baseOptions: {
-                    modelAssetPath: "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task",
+                    modelAssetPath: "assets/mediapipe/models/face_landmarker.task",
                     delegate: "GPU",
                 },
                 runningMode: "VIDEO",
@@ -1198,7 +1198,7 @@ ZONE_X_MAX = <span style="color:#d19a66;">0.5</span> + ZONE_COTE / <span style="
 
             var handLandmarker = await HandLandmarker.createFromOptions(filesetResolver, {
                 baseOptions: {
-                    modelAssetPath: "https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task",
+                    modelAssetPath: "assets/mediapipe/models/hand_landmarker.task",
                     delegate: "GPU",
                 },
                 runningMode: "VIDEO",
