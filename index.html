@@ -1178,7 +1178,7 @@ ZONE_X_MAX = <span style="color:#d19a66;">0.5</span> + ZONE_COTE / <span style="
             var statusEl = document.getElementById('mediapipe-status');
             if (statusEl) statusEl.textContent = 'Chargement...';
 
-            var v = await import("assets/mediapipe/vision_bundle.mjs");
+            var v = await import("./assets/mediapipe/vision_bundle.mjs");
             var FaceLandmarker = v.FaceLandmarker;
             var HandLandmarker = v.HandLandmarker;
             var FilesetResolver = v.FilesetResolver;
